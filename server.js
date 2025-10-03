@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false}));
 // app.use(express.static(path.join(__dirname, 'public'))); // Optional since wala pa namang public directory
 
 // ENDPOINTS
-app.use('/news', require('./routes/api/newsRoute'))
+app.use('/news', require('./routes/api/newsRoute'));
 
 mongoose.connection.once("open", () => {
   console.log('Connected To DB');

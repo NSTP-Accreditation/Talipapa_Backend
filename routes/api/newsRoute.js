@@ -4,8 +4,14 @@ const News = require("../../model/News");
 
 router
   .route("")
-  .get((request, response) => {
-    
+  .get(async (request, response) => {
+    try {
+      const allNews = await News.find({});
+
+      response.json(allNews);
+    } catch (error) {
+      response.status(500).json({ error: error.message });
+    }
   })
   .post(async (request, response) => {
     const { title, status, content } = request.body;
