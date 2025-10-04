@@ -23,6 +23,8 @@ app.use(cors(corsConfig));
 // ic'))); // Optional since wala pa namang public directory
 
 // Auth Endpoint
+app.use('/auth', require('./routes/auth'));
+
 
 // ENDPOINTS
 app.use('/news', require('./routes/api/newsRoute'));
