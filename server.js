@@ -6,7 +6,7 @@ const connDB = require('./config/connDB')
 const mongoose = require('mongoose');
 
 // This is to use the .env files
-require('dotenv').config;
+require('dotenv').config();
 
 // Connect to db
 connDB();

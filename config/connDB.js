@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 
 const connDB = async () => {
   try {
-    // TODO: Use Dotenv for the path
-    await mongoose.connect("mongodb+srv://Yannny:yanny@cluster0.jvfuoao.mongodb.net/TalipapaDB?retryWrites=true&w=majority&appName=Cluster0");
+    await mongoose.connect(process.env.DB_URI);
   } catch (error) {
     console.error(error); 
   }
