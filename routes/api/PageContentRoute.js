@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { PageContent, Achievement } = require("../../model/PageContent");
+const PageContent = require("../../model/PageContent");
+const mongoose = require('mongoose');
 
 // GET all page contents
 router
@@ -21,6 +22,13 @@ router
 
     try {
       const allContent = await PageContent.find({});
+      if(allContent.length > 0) {
+        if(mission || vision) {
+          return response
+          .status(400)
+          .json({ message: "Mission and Vision content is already defined!" });
+        }
+      }
 
       if (!mission || !vision)
         return response
@@ -71,21 +79,31 @@ router
       response.status(500).json({ error: error.message });
     }
   })
-  .delete(async (request, response) => {
-    const { id } = request.params;
 
-    if (!id)
+router.delete(("/:id/:achievementId"), async (request, response) => {
+    const { id, achievementId } = request.params;
+
+    if (!achievementId)
       return response.status(400).json({ message: "The ID is required!" });
 
     try {
-      const foundContent = await PageContent.findById({ _id: id });
-      if (!foundContent)
-        return response
-          .status(404)
-          .json({ message: `PageContent not found with ID: ${id}` });
+      const pageContentId = new mongoose.Types.ObjectId(id);
+      const achievementIdObj = new mongoose.Types.ObjectId(achievementId);
 
-      await PageContent.deleteOne(foundContent);
-      return response.json({ message: "Page content deleted successfully!" });
+      const foundContent = await PageContent.findOne({ _id: pageContentId });
+
+      if (!foundContent) {
+        return response.status(404).json({ message: `PageContent not found with ID: ${id}` });
+      }
+
+      const newAchievements = foundContent.achievements.filter(achiv => 
+        !achiv._id.equals(achievementIdObj)
+      );
+      
+      foundContent.achievements = newAchievements;
+      await foundContent.save();
+
+      return response.json({ message: "Achievement deleted successfully!" });
     } catch (error) {
       response.status(500).json({ error: error.message });
     }
