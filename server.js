@@ -4,6 +4,8 @@ const path = require('path');
 const port = 5555;
 const connDB = require('./config/connDB')
 const mongoose = require('mongoose');
+const cors = require('cors');
+const corsConfig = require('./config/corsConfig');
 
 // This is to use the .env files
 require('dotenv').config();
@@ -14,7 +16,15 @@ connDB();
 // middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: false}));
-// app.use(express.static(path.join(__dirname, 'public'))); // Optional since wala pa namang public directory
+
+app.use(cors(corsConfig));
+
+// app.use(express.static(path.join(__dirname, 'publ
+// ic'))); // Optional since wala pa namang public directory
+
+// Auth Endpoint
+app.use('/auth', require('./routes/auth'));
+
 
 // ENDPOINTS
 app.use('/news', require('./routes/api/newsRoute'));
