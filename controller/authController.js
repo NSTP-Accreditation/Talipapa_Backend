@@ -1,6 +1,7 @@
 const User = require("../model/User");
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
+const { response } = require("express");
+const jwt = require("jsonwebtoken");
 
 const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, address, password } = request.body;
@@ -16,7 +17,7 @@ const handleCreateAccount = async (request, response) => {
     return response.status(400).json({ message: "Invalid Email Format!" });
   }
 
-  if(contactNumber.length !== 11) {
+  if (contactNumber.length !== 11) {
     return response.status(400).json({ message: "Invalid Contact Number!" });
   }
 
@@ -27,7 +28,9 @@ const handleCreateAccount = async (request, response) => {
 
     if (foundUser) {
       if (foundUser.username === username) {
-        return response.status(409).json({ message: "Username Already Exists" });
+        return response
+          .status(409)
+          .json({ message: "Username Already Exists" });
       }
       if (foundUser.email === email) {
         return response.status(409).json({ message: "Email Already Exists" });
@@ -53,46 +56,90 @@ const handleCreateAccount = async (request, response) => {
   }
 };
 
-const handleLogin = async (req, res) => {
-  const { username, password } = req.body;
-  if(!username || !password) return res.status(400).json({'error': 'Username and Password are required!'});
+const handleLogin = async (request, response) => {
+  const { username, password } = request.body;
+  if (!username || !password)
+    return res
+      .status(400)
+      .json({ error: "Username and Password are required!" });
 
   const foundUser = await User.findOne({ username }).exec();
-  if(!foundUser) return res.status(401).json({ error: 'Username or Password is incorrect.'});
+  if (!foundUser)
+    return response
+      .status(401)
+      .json({ error: "Username or Password is incorrect." });
 
   try {
     const match = await bcrypt.compare(password, foundUser.password);
 
-    if(match) {
+    if (match) {
       const accessToken = jwt.sign(
         { username: foundUser.username },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: process.env.ACCESS_TOKEN_EXP }
-      )
+      );
       const refreshToken = jwt.sign(
         { username: foundUser.username },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: process.env.ACCESS_TOKEN_EXP }
-      )
-      
+      );
+
       foundUser.refreshToken = refreshToken;
-      await foundUser.save()
-      
-      res.cookie('jwt', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, secure: false, sameSite: "None"}); //  Secure True, Samesite: Strict 
-      
-      res.json({
-        'userData': {
+      await foundUser.save();
+
+      response.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: false,
+        sameSite: "None",
+      }); //  Secure True, Samesite: Strict
+
+      response.json({
+        userData: {
           username: foundUser.username,
         },
-        'accessToken': accessToken
+        accessToken: accessToken,
       });
     } else {
-      res.status(401).json({ error: 'Username or Password is incorrect.' });
+      response
+        .status(401)
+        .json({ error: "Username or Password is incorrect." });
     }
   } catch (error) {
-    res.status(500).json({'error': error.message})
+    response.status(500).json({ error: error.message });
   }
-
 };
 
-module.exports = { handleCreateAccount, handleLogin };
+const handleRefreshToken = async (request, response) => {
+  const cookies = request.cookies;
+
+  if (!cookies?.refreshToken) return response.sendStatus(401);
+  const refreshToken = cookies.refreshToken;
+
+  try {
+    const foundUser = await User.findOne({ refreshToken });
+    if (!foundUser) return response.sendStatus(403);
+
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      (err, decoded) => {
+        if (err || decoded.username !== foundUser.username)
+          return response.sendStatus(403);
+
+        const accessToken = jwt.sign(
+          { username: foundUser.username },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: process.env.ACCESS_TOKEN_EXP }
+        );
+
+        return response.json({ accessToken }); 
+      }
+    );
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+};
+
+
+module.exports = { handleCreateAccount, handleLogin, handleRefreshToken };
