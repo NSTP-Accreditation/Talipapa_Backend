@@ -6,8 +6,6 @@ const verifyJWT = (request, response, next) => {
   
   if(!authHeader?.startsWith("Bearer ")) return response.sendStatus(401);
   const token = authHeader.split(' ')[1];
-
-  console.log(token);
   
   jwt.verify(
     token,

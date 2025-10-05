@@ -7,6 +7,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const corsConfig = require('./config/corsConfig');
 const cookieParser = require('cookie-parser');
+const verifyJWT = require('./middlewares/verifyJWT');
+// TODO: Put this into routes
+const roles = require('./config/roles');
+const verifyRoles = require('./middlewares/verifyRoles'); 
 
 // This is to use the .env files
 require("dotenv").config();
@@ -26,9 +30,9 @@ app.use(cors(corsConfig));
 // Auth Endpoint
 app.use('/auth', require('./routes/auth'));
 
-
 // ENDPOINTS
-app.use("/news", require("./routes/api/newsRoute"));
+
+app.use("/news", verifyJWT, verifyRoles(roles.SuperAdmin), require("./routes/api/newsRoute"));
 
 app.use("/pagecontent", require("./routes/api/PageContentRoute"));
 

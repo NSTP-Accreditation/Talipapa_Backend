@@ -4,7 +4,8 @@ const { response } = require("express");
 const jwt = require("jsonwebtoken");
 
 const handleCreateAccount = async (request, response) => {
-  const { username, email, contactNumber, address, password } = request.body;
+  const { username, email, contactNumber, roles, address, password } =
+    request.body;
 
   if (!username || !email | !contactNumber || !address || !password)
     return response.status(400).json({
@@ -42,9 +43,9 @@ const handleCreateAccount = async (request, response) => {
     const newUser = await User.create({
       username,
       email,
-      // roles,
       contactNumber,
       address,
+      roles: roles,
       password: hashedPassword,
     });
 
@@ -59,7 +60,7 @@ const handleCreateAccount = async (request, response) => {
 const handleLogin = async (request, response) => {
   const { username, password } = request.body;
   if (!username || !password)
-    return res
+    return response
       .status(400)
       .json({ error: "Username and Password are required!" });
 
@@ -73,8 +74,15 @@ const handleLogin = async (request, response) => {
     const match = await bcrypt.compare(password, foundUser.password);
 
     if (match) {
+      const roles = Object.values(foundUser.roles);
+
       const accessToken = jwt.sign(
-        { username: foundUser.username },
+        {
+          userInfo: {
+            username: foundUser.username,
+            roles,
+          },
+        },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: process.env.ACCESS_TOKEN_EXP }
       );
@@ -126,9 +134,14 @@ const handleRefreshToken = async (request, response) => {
       (err, decoded) => {
         if (err || decoded.username !== foundUser.username)
           return response.sendStatus(403);
-
+        const roles = Object.values(foundUser.roles)
         const accessToken = jwt.sign(
-          { username: foundUser.username },
+          {
+            userInfo: {
+              username: foundUser.username,
+              roles,
+            },
+          },
           process.env.ACCESS_TOKEN_SECRET,
           { expiresIn: process.env.ACCESS_TOKEN_EXP }
         );
@@ -175,4 +188,9 @@ const handleLogout = async (request, response) => {
   }
 };
 
-module.exports = { handleCreateAccount, handleLogin, handleRefreshToken, handleLogout };
+module.exports = {
+  handleCreateAccount,
+  handleLogin,
+  handleRefreshToken,
+  handleLogout,
+};
