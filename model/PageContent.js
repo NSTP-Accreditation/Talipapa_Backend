@@ -10,29 +10,6 @@ const pageContentSchema = new Schema({
     type: String,
     required: true,
   },
-  achievements: [
-    {
-      title: {
-        type: String,
-        required: true,
-      },
-      description: {
-        type: String,
-        required: true,
-      },
-      link: {
-        type: String,
-        required: false,
-      },
-      created_at: {
-        type: Date,
-        default: Date.now,
-      },
-      updated_at: {
-        type: Date,
-      },
-    },
-  ],
   created_at: {
     type: Date,
     default: Date.now,
