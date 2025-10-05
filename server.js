@@ -38,6 +38,8 @@ app.use("/pagecontent", require("./routes/api/PageContentRoute"));
 
 app.use("/achievements", require("./routes/api/achievementsRoute"));
 
+app.use("/products", require("./routes/api/productsRoute"));
+
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
 
