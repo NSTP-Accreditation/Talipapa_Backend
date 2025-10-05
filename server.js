@@ -7,10 +7,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const corsConfig = require('./config/corsConfig');
 const cookieParser = require('cookie-parser');
-const verifyJWT = require('./middlewares/verifyJWT');
-// TODO: Put this into routes
-const roles = require('./config/roles');
-const verifyRoles = require('./middlewares/verifyRoles'); 
+
 
 // This is to use the .env files
 require("dotenv").config();
@@ -32,13 +29,15 @@ app.use('/auth', require('./routes/auth'));
 
 // ENDPOINTS
 
-app.use("/news", verifyJWT, verifyRoles(roles.SuperAdmin), require("./routes/api/newsRoute"));
+app.use("/news", require("./routes/api/newsRoute"));
 
 app.use("/pagecontent", require("./routes/api/PageContentRoute"));
 
 app.use("/achievements", require("./routes/api/achievementsRoute"));
 
 app.use("/products", require("./routes/api/productsRoute"));
+
+app.use('/records', require("./routes/api/recordRoute"));
 
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
