@@ -1,16 +1,16 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const newsSchema = new Schema({
+const guidelineSchema = new Schema({
+  category: {
+    type: String,
+    required: true,
+  },
   title: {
     type: String,
     required: true,
   },
-  status: {
-    type: String,
-    required: true,
-  }, // PUBLISHED OR DRAFT
-  content: {
+  description: {
     type: String,
     required: true,
   },
@@ -23,4 +23,4 @@ const newsSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model("News", newsSchema);
+module.exports = mongoose.model("Guideline", guidelineSchema);
