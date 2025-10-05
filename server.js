@@ -31,6 +31,8 @@ app.use("/news", require("./routes/api/newsRoute"));
 
 app.use("/pagecontent", require("./routes/api/PageContentRoute"));
 
+app.use("/achievements", require("./routes/api/achievementsRoute"));
+
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
 
