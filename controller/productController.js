@@ -15,8 +15,11 @@ const createProduct = async (req, res) => {
   const { name, description, category, subCategory, requiredPoints } = req.body;
   
   if(!name || !description || !category || !subCategory || !requiredPoints ) return res.status(400).json({ 'error': "All Fields are required!"});
-  
+
   try {
+    const foundProduct = await Product.findOne({ name });
+    if(foundProduct) return res.status(409).json({ message: `Product: ${name} already exists` })
+
     const newProduct = await Product.create({
       name,
       description,
