@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { handleLogin, handleCreateAccount, handleRefreshToken } = require('../controller/authController');
+const { handleLogin, handleCreateAccount, handleRefreshToken, handleLogout } = require('../controller/authController');
 
 router.post('/signup', handleCreateAccount);
 router.post('/login', handleLogin);
 router.post("/refreshToken", handleRefreshToken);
-
-// Refresh access token needs a refresh token saved in http cookie only
-
-// logout
+router.post("/logout", handleLogout);
 
 module.exports = router
