@@ -92,7 +92,7 @@ const handleLogin = async (request, response) => {
         maxAge: 24 * 60 * 60 * 1000,
         secure: false,
         sameSite: "None",
-      }); //  Secure True, Samesite: Strict
+      }); // TODO: Secure True, Samesite: Strict
 
       response.json({
         userData: {
@@ -133,7 +133,7 @@ const handleRefreshToken = async (request, response) => {
           { expiresIn: process.env.ACCESS_TOKEN_EXP }
         );
 
-        return response.json({ accessToken }); 
+        return response.json({ accessToken });
       }
     );
   } catch (error) {
@@ -141,5 +141,38 @@ const handleRefreshToken = async (request, response) => {
   }
 };
 
+const handleLogout = async (request, response) => {
+  const cookies = request.cookies;
 
-module.exports = { handleCreateAccount, handleLogin, handleRefreshToken };
+  if (!cookies) return response.sendStatus(204);
+  const refreshToken = cookies.refreshToken;
+
+  try {
+    const foundUser = await User.findOne({ refreshToken });
+
+    if (!foundUser) {
+      response.clearCookie("refreshToken", {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: false,
+        sameSite: "None",
+      });
+      response.sendStatus(204);
+    }
+
+    foundUser.refreshToken = "";
+    await foundUser.save();
+
+    response.clearCookie("refreshToken", {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      secure: false,
+      sameSite: "None",
+    });
+    response.sendStatus(204);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { handleCreateAccount, handleLogin, handleRefreshToken, handleLogout };
