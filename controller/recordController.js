@@ -1,6 +1,5 @@
 const Record = require("../model/Record");
 
-
 const getRecords = async (req, res) => {
   try {
     const records = await Record.find().sort({ created_at: -1 });
@@ -23,7 +22,12 @@ const createRecord = async (req, res) => {
     lastName: { $regex: `^${lastName}$`, $options: "i" },
   });
 
-  if (duplicateRecord) return res.status(409).json({ error: `Record ${firstName} ${middleName} ${lastName} Already Exists`});
+  if (duplicateRecord)
+    return res
+      .status(409)
+      .json({
+        error: `Record ${firstName} ${middleName} ${lastName} Already Exists`,
+      });
   try {
     const newRecord = await Record.create({
       firstName,
@@ -34,13 +38,11 @@ const createRecord = async (req, res) => {
       contactNumber,
     });
 
-    res
-      .status(201)
-      .json({
-        message: `${newRecord._id}: ${newRecord.lastName} New Record Created!`,
-        record_id: newRecord._id,
-        lastName
-      });
+    res.status(201).json({
+      message: `${newRecord._id}: ${newRecord.lastName} New Record Created!`,
+      record_id: newRecord._id,
+      lastName,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -54,11 +56,17 @@ const updateRecord = async (req, res) => {
     if (!record_id || !lastName || !points /* TODO: || !materials*/)
       return res.status(400).json({ error: "All Fields are required!" });
 
+    // TODO: Ensure that the points is valid
+
     const updatedRecord = await Record.findOneAndUpdate(
-      { _id: { $regex: `^${record_id}$`, $options: 'i'}, 
-        lastName: { $regex: `^${lastName}$`, $options: 'i'}
+      {
+        _id: { $regex: `^${record_id}$`, $options: "i" },
+        lastName: { $regex: `^${lastName}$`, $options: "i" },
       },
-      { $inc: { points } },
+      { 
+        updatedAt: new Date(),
+        $inc: { points } 
+      },
       { new: true }
     ).lean();
 

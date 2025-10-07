@@ -68,7 +68,7 @@ const updatePageContents = async (request, response) => {
         vision,
         barangayName,
         barangayDescription,
-        updated_at: new Date(),
+        updatedAt: new Date(),
       },
       { new: true }
     );

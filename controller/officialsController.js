@@ -16,7 +16,10 @@ const postOfficials = async (request, response) => {
 
   try {
     if (!name || !position)
-      return response.status(400).json({ message: "All fields are required!" });
+      return response.status(400).json({ message: "Name and Position is required!" });
+
+    const foundOfficial = await Officials.findOne({ name });
+    if(foundOfficial) return response.status(409).json({ message: `Official ${name} already exists. `});
 
     const newsObject = await Officials.create({
       name: name,
@@ -40,7 +43,7 @@ const updateOfficials = async (request, response) => {
 
     const updatedObject = await officials.findByIdAndUpdate(
       { _id: id },
-      { name: name, position: position, updated_at: new Date() },
+      { name: name, position: position, updatedAt: new Date() },
       { new: true }
     );
 
