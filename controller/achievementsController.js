@@ -39,7 +39,7 @@ const updateAchievements = async (request, response) => {
             .status(400)
             .json({ message: "Title and Description are required!" });
 
-        const updateAchievements = await Achievements.findByIdAndUpdate({ _id: id}, { title: title, description: description, link: link, updated_at: new Date() }, { new: true});
+        const updateAchievements = await Achievements.findByIdAndUpdate({ _id: id}, { title: title, description: description, link: link, updatedAt: new Date() }, { new: true});
         response.status(200).json(updateAchievements);
 
     } catch (error) {
