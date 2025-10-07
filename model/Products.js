@@ -24,7 +24,12 @@ const productSchema = new Schema({
   },
   image: {
     type: String,
-  }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now()
+  },
+  updatedAt: Date
 });
 
 

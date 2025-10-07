@@ -48,7 +48,7 @@ const updateGuideline = async (request, response) => {
           category,
           title,
           description,
-          updated_at: new Date(),
+          updatedAt: new Date(),
         },
         { new: true }
       );

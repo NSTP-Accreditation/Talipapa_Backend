@@ -42,7 +42,7 @@ const updateNews = async (request, response) => {
           .status(400)
           .json({ message: "All fields are required!" });
 
-      const updatedObject = await News.findByIdAndUpdate({ _id: id }, { title: title, status: status, content: content, updated_at: new Date() }, { new: true });
+      const updatedObject = await News.findByIdAndUpdate({ _id: id }, { title: title, status: status, content: content, updatedAt: new Date() }, { new: true });
 
       response.json(updatedObject);
     } catch (error) {
