@@ -1,6 +1,5 @@
 const User = require("../model/User");
 const bcrypt = require("bcrypt");
-const { response } = require("express");
 const jwt = require("jsonwebtoken");
 
 const handleCreateAccount = async (request, response) => {

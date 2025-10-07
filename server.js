@@ -27,6 +27,7 @@ app.use(cors(corsConfig));
 app.use("/auth", require("./routes/auth"));
 
 // ENDPOINTS
+app.use('/users', require('./routes/api/userRoute'));
 
 app.use("/news", require("./routes/api/newsRoute"));
 
