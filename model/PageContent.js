@@ -10,11 +10,11 @@ const pageContentSchema = new Schema({
     type: String,
     required: true,
   },
-  baranggay_name: {
+  barangayName: {
     type: String,
     required: true,
   },
-  baranggay_description: {
+  barangayDescription: {
     type: String,
     required: true,
   },
