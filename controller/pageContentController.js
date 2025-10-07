@@ -1,7 +1,5 @@
 const PageContent = require("../model/PageContent");
 
-//const { getAllPageContents, postPageContents, updatePageContents } = require("../../controller/newsController");
-
 const getAllPageContents = async (request, response) => {
   try {
     const allContent = await PageContent.find({});
@@ -13,26 +11,35 @@ const getAllPageContents = async (request, response) => {
 };
 
 const postPageContents = async (request, response) => {
-  const { mission, vision } = request.body;
+  const { mission, vision, barangayName, barangayDescription } =
+    request.body;
 
   try {
     const allContent = await PageContent.find({});
     if (allContent.length > 0) {
-      if (mission || vision) {
+      if (mission || vision || barangayName || barangayDescription) {
         return response
           .status(400)
-          .json({ message: "Mission and Vision content is already defined!" });
+          .json({
+            message:
+              "Mission, Vision, Barangay Name and Barangay Description content is already defined!",
+          });
       }
     }
 
-    if (!mission || !vision)
+    if (!mission || !vision || !barangayName || !barangayDescription)
       return response
         .status(400)
-        .json({ message: "Mission and Vision content are required!" });
+        .json({
+          message:
+            "Mission Vision, brgy name and description content are required!",
+        });
 
     const pageContent = await PageContent.create({
       mission,
       vision,
+      barangayName,
+      barangayDescription,
     });
 
     response.status(201).json(pageContent);
@@ -43,21 +50,24 @@ const postPageContents = async (request, response) => {
 
 const updatePageContents = async (request, response) => {
   const { id } = request.params;
-  const { mission, vision } = request.body;
+  const { mission, vision, barangayName, barangayDescription } =
+    request.body;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
   try {
-    if (!mission || !vision)
+    if (!mission || !vision || !barangayName || !barangayDescription)
       return response
         .status(400)
-        .json({ message: "Mission and Vision are required!" });
+        .json({ message: "Mission, Vision, Barangay Name, Barangay Description are required!" });
 
     const updatedContent = await PageContent.findByIdAndUpdate(
       { _id: id },
       {
         mission,
         vision,
+        barangayName,
+        barangayDescription,
         updated_at: new Date(),
       },
       { new: true }
