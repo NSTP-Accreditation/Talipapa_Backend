@@ -40,6 +40,8 @@ app.use("/records", require("./routes/api/recordRoute"));
 
 app.use("/guidelines", require("./routes/api/guidelinesRoute"));
 
+app.use("/logs", require("./routes/api/logsRoute"));
+
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
 
