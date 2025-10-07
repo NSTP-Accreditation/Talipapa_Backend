@@ -13,26 +13,35 @@ const getAllPageContents = async (request, response) => {
 };
 
 const postPageContents = async (request, response) => {
-  const { mission, vision } = request.body;
+  const { mission, vision, baranggay_name, baranggay_description } =
+    request.body;
 
   try {
     const allContent = await PageContent.find({});
     if (allContent.length > 0) {
-      if (mission || vision) {
+      if (mission || vision || baranggay_name || baranggay_description) {
         return response
           .status(400)
-          .json({ message: "Mission and Vision content is already defined!" });
+          .json({
+            message:
+              "Mission, Vision, brgy name and description content is already defined!",
+          });
       }
     }
 
-    if (!mission || !vision)
+    if (!mission || !vision || !baranggay_name || !baranggay_description)
       return response
         .status(400)
-        .json({ message: "Mission and Vision content are required!" });
+        .json({
+          message:
+            "Mission Vision, brgy name and description content are required!",
+        });
 
     const pageContent = await PageContent.create({
       mission,
       vision,
+      baranggay_name,
+      baranggay_description,
     });
 
     response.status(201).json(pageContent);
@@ -43,12 +52,13 @@ const postPageContents = async (request, response) => {
 
 const updatePageContents = async (request, response) => {
   const { id } = request.params;
-  const { mission, vision } = request.body;
+  const { mission, vision, baranggay_name, baranggay_description } =
+    request.body;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
   try {
-    if (!mission || !vision)
+    if (!mission || !vision || !baranggay_name || !baranggay_description)
       return response
         .status(400)
         .json({ message: "Mission and Vision are required!" });
@@ -58,6 +68,8 @@ const updatePageContents = async (request, response) => {
       {
         mission,
         vision,
+        baranggay_name,
+        baranggay_description,
         updated_at: new Date(),
       },
       { new: true }

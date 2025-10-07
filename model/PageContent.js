@@ -10,6 +10,14 @@ const pageContentSchema = new Schema({
     type: String,
     required: true,
   },
+  baranggay_name: {
+    type: String,
+    required: true,
+  },
+  baranggay_description: {
+    type: String,
+    required: true,
+  },
   created_at: {
     type: Date,
     default: Date.now,
@@ -19,6 +27,6 @@ const pageContentSchema = new Schema({
   },
 });
 
-const PageContent = mongoose.model("PageContent", pageContentSchema);
+module.exports = mongoose.model("PageContent", pageContentSchema);
 
-module.exports = PageContent;
+// nag add ako ng baranggay_name at baranggay_description
