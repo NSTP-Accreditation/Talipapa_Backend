@@ -3,14 +3,20 @@ const Logs = require("../model/Logs");
 // GET - Retrieve all logs with optional filtering
 const getAllLogs = async (request, response) => {
   try {
-    const { action, category, status, userId, startDate, endDate } = request.query;
-    
+
+    // TODO: Add page query 0: (10 - 20) 1: (21 - 40) 
+
+    // page= (1 - 1) * limit: 0
+    // page= (2 - 1) * 20: 20
+
+    const { action, category, status, userId, startDate, endDate, page } = request.query;
+
     // Build filter object
     const filter = {};
     if (action) filter.action = action;
     if (category) filter.category = category;
     if (status) filter.status = status;
-    if (userId) filter['performedBy.userId'] = userId;
+    if (userId) filter['performedBy'] = userId;
     
     // Date range filter
     if (startDate || endDate) {
@@ -21,8 +27,10 @@ const getAllLogs = async (request, response) => {
 
     const allLogs = await Logs.find(filter)
       .sort({ created_at: -1 })
-      .limit(100);
-
+      .populate('performedBy', 'username roles')
+      .skip(page)
+      .limit(20);
+    
     response.status(200).json({
       success: true,
       count: allLogs.length,
@@ -46,18 +54,20 @@ const postLogs = async (request, response) => {
       description, 
       performedBy,
       targetType,
-      targetId,
-      targetName,
+      targetId, 
+      targetName, 
       details,
-      ipAddress,
       status
     } = request.body;
 
-    // Validate required fields
-    if (!action || !category || !title || !description) {
+    const ipAddress = request.ip;
+    console.log(ipAddress);
+
+    // Validate required fields TODO: validate performed,
+    if (!action || !category || !title || !description || !performedBy ) {
       return response.status(400).json({ 
         success: false,
-        message: "Action, Category, Title and Description are required!" 
+        message: "Action, Category, Title and Description Performed By are required!" 
       });
     }
 

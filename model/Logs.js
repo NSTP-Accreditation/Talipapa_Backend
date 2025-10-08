@@ -2,29 +2,32 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const logsSchema = new Schema({
+  
+  // User who performed the action
+  performedBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  
   // Action type
   action: {
     type: String,
     required: true,
   },
   
-  // Category for grouping logs
+  // Description of the action
+  description: {
+    type: String,
+    required: true,
+  },
+
+  // Category for grouping logs Ex: Enum: { Authentication, USER_MANAGEMENT, RECORD_MANAGEMENT, INVENTORY, CONTENT_MANAGEMENT }
   category: {
     type: String,
     required: true,
   },
   
-  // User who performed the action
-  performedBy: {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    username: String,
-    role: String
-  },
-  
-  // Target of the action
+  // Target of the action Ex: 
   targetType: {
     type: String,
   },
@@ -39,11 +42,6 @@ const logsSchema = new Schema({
   
   // Log details
   title: {
-    type: String,
-    required: true,
-  },
-  
-  description: {
     type: String,
     required: true,
   },

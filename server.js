@@ -41,11 +41,9 @@ app.use("/records", require("./routes/api/recordRoute"));
 
 app.use("/guidelines", require("./routes/api/guidelinesRoute"));
 
-<<<<<<< HEAD
-app.use("/logs", require("./routes/api/logsRoute"));
-=======
 app.use("/officials", require("./routes/api/officialsRoute"));
->>>>>>> bb7e147e623deb7a3d1e61640d290d9d4de9a818
+
+app.use("/logs", require("./routes/api/logsRoute"));
 
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
