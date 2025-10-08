@@ -8,7 +8,6 @@ const verifyJWT = require('../../middlewares/verifyJWT');
 const verifyRoles = require('../../middlewares/verifyRoles');
 const ROLES = require('../../config/roles');
 
-
 router.route("")
       .get(verifyJWT, verifyRoles(ROLES.SuperAdmin), getAllUsers);
       
