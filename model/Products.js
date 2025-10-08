@@ -19,8 +19,8 @@ const productSchema = new Schema({
     required: true
   },
   stocks: {
-    type: String,
-    required: true
+    type: Number,
+    default: 0
   },
   requiredPoints: {
     type: Number,
