@@ -13,11 +13,11 @@ const achievementsSchema = new Schema({
       link: {
         type: String,
       },
-      created_at: {
+      createdAt: {
         type: Date,
         default: Date.now,
       },
-      updated_at: {
+      updatedAt: {
         type: Date,
       },
 });

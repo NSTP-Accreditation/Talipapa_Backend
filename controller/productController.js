@@ -1,6 +1,6 @@
 const Product = require('../model/Products');
 
-// TODO: ADD IMAGE
+// TODO: ADD IMAGE AND UPDATE PRODUCT
 const getProducts = async (req, res) => {
   try {
     const products = await Product.find();
