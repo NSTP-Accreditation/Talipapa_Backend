@@ -1,24 +1,30 @@
-const Product = require('../model/Products');
+const Product = require("../model/Products");
 
 // TODO: ADD IMAGE AND UPDATE PRODUCT
 const getProducts = async (req, res) => {
   try {
     const products = await Product.find();
-    if(!products) return res.status(204).json({'message': 'No Products found'});    
+    if (!products)
+      return res.status(204).json({ message: "No Products found" });
     res.json(products);
   } catch (error) {
-    res.status(500).json({error: error.message});
+    res.status(500).json({ error: error.message });
   }
 };
 
 const createProduct = async (req, res) => {
-  const { name, description, category, subCategory, stocks, requiredPoints } = req.body;
-  
-  if(!name || !description || !category || !subCategory || !requiredPoints ) return res.status(400).json({ 'error': "All Fields are required!"});
+  const { name, description, category, subCategory, stocks, requiredPoints } =
+    req.body;
+
+  if (!name || !description || !category || !subCategory || !requiredPoints)
+    return res.status(400).json({ error: "All Fields are required!" });
 
   try {
     const foundProduct = await Product.findOne({ name });
-    if(foundProduct) return res.status(409).json({ message: `Product: ${name} already exists` })
+    if (foundProduct)
+      return res
+        .status(409)
+        .json({ message: `Product: ${name} already exists` });
 
     const newProduct = await Product.create({
       name,
@@ -26,12 +32,40 @@ const createProduct = async (req, res) => {
       category,
       subCategory,
       stocks,
-      requiredPoints
+      requiredPoints,
     });
-    res.status(201).json({ message: `Product ${newProduct.name} Created!`});
+    res.status(201).json({ message: `Product ${newProduct.name} Created!` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-module.exports = { getProducts, createProduct };
+const updateProduct = async (request, response) => {
+  const { id } = request.params;
+  const { name, description, category, subCategory, stocks, requiredPoints } =
+    request.body;
+
+  if (!name || !description || !category || !subCategory || !requiredPoints)
+    return res.status(400).json({ error: "All Fields are required!" });
+
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(id, {
+      name,
+      description,
+      category,
+      subCategory,
+      stocks,
+      requiredPoints,
+    }, { new: true }).lean();
+
+    if(!updatedProduct) {
+      return response.status(404).json({ message: `Product not found with ID: ${id}`})
+    } 
+
+    response.json(updatedProduct);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { getProducts, createProduct, updateProduct };
