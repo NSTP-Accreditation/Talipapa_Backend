@@ -18,6 +18,10 @@ const productSchema = new Schema({
     type: String,
     required: true
   },
+  stocks: {
+    type: String,
+    required: true
+  },
   requiredPoints: {
     type: Number,
     required: true

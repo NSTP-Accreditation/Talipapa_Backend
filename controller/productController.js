@@ -12,7 +12,7 @@ const getProducts = async (req, res) => {
 };
 
 const createProduct = async (req, res) => {
-  const { name, description, category, subCategory, requiredPoints } = req.body;
+  const { name, description, category, subCategory, stocks, requiredPoints } = req.body;
   
   if(!name || !description || !category || !subCategory || !requiredPoints ) return res.status(400).json({ 'error': "All Fields are required!"});
 
@@ -25,6 +25,7 @@ const createProduct = async (req, res) => {
       description,
       category,
       subCategory,
+      stocks,
       requiredPoints
     });
     res.status(201).json({ message: `Product ${newProduct.name} Created!`});
