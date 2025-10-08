@@ -8,7 +8,7 @@ const roles = require("../../config/roles");
 router
   .route("")
   .get(getAllNews)
-  .post(verifyJWT, verifyRoles(roles.SuperAdmin), postNews)
+  .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postNews)
 
 router
   .route("/:id")
