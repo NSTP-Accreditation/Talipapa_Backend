@@ -3,13 +3,7 @@ const Logs = require("../model/Logs");
 // GET - Retrieve all logs with optional filtering
 const getAllLogs = async (request, response) => {
   try {
-
-    // TODO: Add page query 0: (10 - 20) 1: (21 - 40) 
-
-    // page= (1 - 1) * limit: 0
-    // page= (2 - 1) * 20: 20
-
-    const { action, category, status, userId, startDate, endDate, page } = request.query;
+    const { action, category, status, userId, startDate, endDate, page = 1, limit = 20 } = request.query;
 
     // Build filter object
     const filter = {};
@@ -25,15 +19,29 @@ const getAllLogs = async (request, response) => {
       if (endDate) filter.created_at.$lte = new Date(endDate);
     }
 
+    // Calculate pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count for pagination info
+    const totalLogs = await Logs.countDocuments(filter);
+    const totalPages = Math.ceil(totalLogs / limitNum);
+
     const allLogs = await Logs.find(filter)
       .sort({ created_at: -1 })
       .populate('performedBy', 'username roles')
-      .skip(page)
-      .limit(20);
+      .skip(skip)
+      .limit(limitNum);
     
     response.status(200).json({
       success: true,
       count: allLogs.length,
+      total: totalLogs,
+      currentPage: pageNum,
+      totalPages: totalPages,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
       data: allLogs
     });
   } catch (error) {
