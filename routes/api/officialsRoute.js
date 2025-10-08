@@ -6,13 +6,16 @@ const {
   deleteOfficials,
 } = require("../../controller/officialsController");
 const router = express.Router();
+const verifyJWT = require('../../middlewares/verifyJWT')
+const verifyRoles = require('../../middlewares/verifyRoles')
+const roles = require('../../config/roles');
 
 router.route("")
 .get(getAllOfficials)
-.post(postOfficials);
+.post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postOfficials);
 
 router.route("/:id")
-.put(updateOfficials)
-.delete(deleteOfficials);
+.put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateOfficials)
+.delete(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), deleteOfficials);
 
 module.exports = router;
