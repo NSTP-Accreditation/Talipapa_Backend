@@ -5,9 +5,6 @@ const verifyJWT = require("../../middlewares/verifyJWT");
 const verifyRoles = require("../../middlewares/verifyRoles");
 const roles = require("../../config/roles");
 
-router
-    .route("")
-    .get(getAllLogs)
-    .post(postLogs);
+router.get('/', verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin),getAllLogs)
 
 module.exports = router;

@@ -3,16 +3,15 @@ const { Schema } = mongoose;
 
 const logsSchema = new Schema({
   
-  // User who performed the action
-  performedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  
   // Action type
   action: {
     type: String,
     required: true,
+  },
+
+  title: {
+    type: String,
+    required: true
   },
   
   // Description of the action
@@ -26,40 +25,12 @@ const logsSchema = new Schema({
     type: String,
     required: true,
   },
-  
-  // Target of the action Ex: 
-  targetType: {
-    type: String,
-  },
-  
-  targetId: {
-    type: String,
-  },
-  
-  targetName: {
-    type: String,
-  },
-  
-  // Log details
-  title: {
-    type: String,
-    required: true,
-  },
-  
-  // Additional data
-  details: {
-    type: Schema.Types.Mixed,
-  },
-  
-  // Request info
-  ipAddress: {
-    type: String,
-  },
-  
-  // Status
-  status: {
-    type: String,
-    default: 'SUCCESS',
+
+  // User who performed the action
+  performedBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   
   // Timestamps

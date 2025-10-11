@@ -37,6 +37,8 @@ app.use("/achievements", require("./routes/api/achievementsRoute"));
 
 app.use("/products", require("./routes/api/productsRoute"));
 
+app.use("/materials", require("./routes/api/materialsRoute"));
+
 app.use("/records", require("./routes/api/recordRoute"));
 
 app.use("/guidelines", require("./routes/api/guidelinesRoute"));

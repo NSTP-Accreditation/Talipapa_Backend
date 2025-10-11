@@ -1,0 +1,12 @@
+export const LOGCONSTANTS = {
+  actions: {
+    achievements: {
+      CREATE_ACHIEVEMENT: "CREATE ACHIEVEMENT",
+      UPDATE_ACHIEVEMENT: "UPDATE ACHIEVEMENT",
+      DELETE_ACHIEVEMENT: "DELETE ACHIEVEMENT",
+    },
+  },
+  categories: {
+    CONTENT_MANAGEMENT: "CONTENT MANAGEMENT",
+  },
+};

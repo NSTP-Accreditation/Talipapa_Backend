@@ -34,7 +34,7 @@ const handleDeleteAccount = async (request, response) => {
         .status(404)
         .json({ message: `User not found with ID ${id}` });
 
-    await User.deleteOne(foundUser);
+    await User.deleteOne({ _id: id });
 
     // Log user deletion
     await createLog({
