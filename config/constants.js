@@ -1,4 +1,4 @@
-export const LOGCONSTANTS = {
+const LOGCONSTANTS = {
   actions: {
     user: {
       CREATE_USER: "CREATE USER",
@@ -53,3 +53,6 @@ export const LOGCONSTANTS = {
     USER_MANAGEMENT: "USER MANAGEMENT"
   },
 };
+
+
+module.exports = {LOGCONSTANTS};
