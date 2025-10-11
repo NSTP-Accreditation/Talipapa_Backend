@@ -2,6 +2,7 @@ const User = require("../model/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { createLog } = require("../utils/logHelper");
+const { LOGCONSTANTS } = require("../config/constants");
 
 const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, roles, address, password } =
@@ -51,15 +52,11 @@ const handleCreateAccount = async (request, response) => {
 
     // Log user registration
     await createLog({
-      action: 'USER_REGISTER',
-      category: 'AUTHENTICATION',
-      title: 'New User Registered',
+      action: LOGCONSTANTS.actions.user.CREATE_USER,
+      category: LOGCONSTANTS.categories.AUTHENTICATION,
+      title: "New User Registered",
       description: `User ${username} registered successfully`,
-      targetType: 'USER',
-      targetId: newUser._id.toString(),
-      targetName: username,
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
     response
@@ -68,7 +65,6 @@ const handleCreateAccount = async (request, response) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-
 };
 
 const handleLogin = async (request, response) => {
@@ -119,16 +115,10 @@ const handleLogin = async (request, response) => {
 
       // Log successful login
       await createLog({
-        action: 'LOGIN',
-        category: 'AUTHENTICATION',
-        title: 'User Login',
-        description: `User ${username} logged in successfully`,
-        performedBy: foundUser._id,
-        targetType: 'USER',
-        targetId: foundUser._id.toString(),
-        targetName: username,
-        ipAddress: request.ip,
-        status: 'SUCCESS'
+        action: LOGCONSTANTS.actions.user.LOGIN,
+        category: LOGCONSTANTS.categories.AUTHENTICATION,
+        title: "User Login",
+        description: `User ${username} registered successfully`,
       });
 
       response.json({
@@ -138,18 +128,6 @@ const handleLogin = async (request, response) => {
         accessToken: accessToken,
       });
     } else {
-      // Log failed login attempt
-      await createLog({
-        action: 'LOGIN_FAILED',
-        category: 'AUTHENTICATION',
-        title: 'Failed Login Attempt',
-        description: `Failed login attempt for user ${username} - incorrect password`,
-        targetType: 'USER',
-        targetName: username,
-        ipAddress: request.ip,
-        status: 'FAILED'
-      });
-
       response
         .status(401)
         .json({ message: "Username or Password is incorrect." });
@@ -175,7 +153,7 @@ const handleRefreshToken = async (request, response) => {
       (err, decoded) => {
         if (err || decoded.username !== foundUser.username)
           return response.sendStatus(403);
-        const roles = Object.values(foundUser.roles)
+        const roles = Object.values(foundUser.roles);
         const accessToken = jwt.sign(
           {
             userInfo: {
@@ -219,16 +197,11 @@ const handleLogout = async (request, response) => {
 
     // Log logout
     await createLog({
-      action: 'LOGOUT',
-      category: 'AUTHENTICATION',
-      title: 'User Logout',
+      action: LOGCONSTANTS.actions.user.LOGOUT,
+      category: LOGCONSTANTS.categories.AUTHENTICATION,
+      title: "User Logout",
       description: `User ${foundUser.username} logged out`,
-      performedBy: foundUser._id,
-      targetType: 'USER',
-      targetId: foundUser._id.toString(),
-      targetName: foundUser.username,
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
     response.clearCookie("refreshToken", {

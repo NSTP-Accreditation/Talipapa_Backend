@@ -30,7 +30,6 @@ const logsSchema = new Schema({
   performedBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true
   },
   
   // Timestamps

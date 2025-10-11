@@ -1,5 +1,10 @@
 export const LOGCONSTANTS = {
   actions: {
+    user: {
+      CREATE_USER: "CREATE USER",
+      LOGIN: "LOGIN",
+      LOGOUT: "LOGOUT"
+    },
     achievements: {
       CREATE_ACHIEVEMENT: "CREATE ACHIEVEMENT",
       UPDATE_ACHIEVEMENT: "UPDATE ACHIEVEMENT",
@@ -8,5 +13,6 @@ export const LOGCONSTANTS = {
   },
   categories: {
     CONTENT_MANAGEMENT: "CONTENT MANAGEMENT",
+    AUTHENTICATION: "AUTHENTICATIon"
   },
 };
