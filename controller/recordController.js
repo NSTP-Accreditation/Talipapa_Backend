@@ -43,7 +43,7 @@ const createRecord = async (req, res) => {
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
       title: "New Record Created",
       description: `Created record for ${firstName} ${middleName} ${lastName} (${newRecord._id})`,
-      performedBy: request.userId,
+      performedBy: req.userId,
     });
 
     res.status(201).json({
