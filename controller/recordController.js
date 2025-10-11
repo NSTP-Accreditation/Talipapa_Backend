@@ -83,8 +83,7 @@ const updateRecord = async (req, res) => {
         .status(404)
         .json({ error: `Record ${record_id}: ${lastName} Not Found!` });
 
-
-        await createLog({
+    await createLog({
       action: LOGCONSTANTS.actions.records.UPDATE_RECORD,
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
       title: "Points Added to Record",

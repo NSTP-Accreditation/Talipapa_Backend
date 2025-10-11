@@ -45,7 +45,9 @@ const createProduct = async (request, response) => {
       performedBy: request.userId,
     });
 
-    response.status(201).json({ message: `Product ${newProduct.name} Created!` });
+    response
+      .status(201)
+      .json({ message: `Product ${newProduct.name} Created!` });
   } catch (error) {
     response.status(500).json({ error: error.message });
   }
@@ -72,7 +74,7 @@ const updateProduct = async (request, response) => {
         stocks,
         requiredPoints,
 
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     ).lean();
@@ -110,8 +112,7 @@ const deleteProduct = async (request, response) => {
         .status(404)
         .json({ message: `Product not found with ID ${id}` });
 
-
-        await createLog({
+    await createLog({
       action: LOGCONSTANTS.actions.products.DELETE_PRODUCT,
       category: LOGCONSTANTS.categories.INVENTORY,
       title: `Product "${name}" was deleted`,

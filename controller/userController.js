@@ -47,29 +47,9 @@ const handleDeleteAccount = async (request, response) => {
       action: LOGCONSTANTS.actions.user.DELETE_USER,
       category: LOGCONSTANTS.categories.USER_MANAGEMENT,
       title: "User Account Deleted",
-      description: `User "${foundObject.title}" was deleted`,
+      description: `User "${foundUser.username}" was deleted`,
       performedBy: request.userId,
     });
-    // await createLog({
-    //   action: "USER_DELETE",
-    //   category: "USER_MANAGEMENT",
-    //   title: "User Account Deleted",
-    //   description: `User "${foundUser.username}" account was deleted`,
-    //   performedBy: request.user,
-    //   targetType: "USER",
-    //   targetId: id,
-    //   targetName: foundUser.username,
-    //   details: {
-    //     deletedUser: {
-    //       username: foundUser.username,
-    //       email: foundUser.email,
-    //       contactNumber: foundUser.contactNumber,
-    //       roles: foundUser.roles,
-    //     },
-    //   },
-    //   ipAddress: request.ip,
-    //   status: "SUCCESS",
-    // });
 
     response.json({ message: "User Deleted Successfully" });
   } catch (error) {
