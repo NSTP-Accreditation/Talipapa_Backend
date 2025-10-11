@@ -12,7 +12,8 @@ const verifyJWT = (request, response, next) => {
     process.env.ACCESS_TOKEN_SECRET,
     (error, decoded) => {
       if (error) return response.sendStatus(403);
-      request.user = decoded.username;
+      request.userId = decoded.userInfo._id;
+      request.user = decoded.userInfo.username;
       request.roles = decoded.userInfo.roles;
       next();
     }

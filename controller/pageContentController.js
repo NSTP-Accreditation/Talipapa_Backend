@@ -1,4 +1,6 @@
 const PageContent = require("../model/PageContent");
+const { createLog } = require("../utils/logHelper");
+const { LOGCONSTANTS } = require("../config/constants");
 
 const getAllPageContents = async (request, response) => {
   try {
@@ -11,35 +13,38 @@ const getAllPageContents = async (request, response) => {
 };
 
 const postPageContents = async (request, response) => {
-  const { mission, vision, barangayName, barangayDescription } =
-    request.body;
+  const { mission, vision, barangayName, barangayDescription } = request.body;
 
   try {
     const allContent = await PageContent.find({});
     if (allContent.length > 0) {
       if (mission || vision || barangayName || barangayDescription) {
-        return response
-          .status(400)
-          .json({
-            message:
-              "Mission, Vision, Barangay Name and Barangay Description content is already defined!",
-          });
+        return response.status(400).json({
+          message:
+            "Mission, Vision, Barangay Name and Barangay Description content is already defined!",
+        });
       }
     }
 
     if (!mission || !vision || !barangayName || !barangayDescription)
-      return response
-        .status(400)
-        .json({
-          message:
-            "Mission Vision, brgy name and description content are required!",
-        });
+      return response.status(400).json({
+        message:
+          "Mission Vision, brgy name and description content are required!",
+      });
 
     const pageContent = await PageContent.create({
       mission,
       vision,
       barangayName,
       barangayDescription,
+    });
+
+    await createLog({
+      action: LOGCONSTANTS.actions.pageContents.CREATE_PAGECONTENTS,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "New Page Content Created",
+      description: `Page content for barangay "${barangayName}" was created`,
+      performedBy: request.userId,
     });
 
     response.status(201).json(pageContent);
@@ -50,8 +55,7 @@ const postPageContents = async (request, response) => {
 
 const updatePageContents = async (request, response) => {
   const { id } = request.params;
-  const { mission, vision, barangayName, barangayDescription } =
-    request.body;
+  const { mission, vision, barangayName, barangayDescription } = request.body;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
@@ -59,7 +63,16 @@ const updatePageContents = async (request, response) => {
     if (!mission || !vision || !barangayName || !barangayDescription)
       return response
         .status(400)
-        .json({ message: "Mission, Vision, Barangay Name, Barangay Description are required!" });
+        .json({
+          message:
+            "Mission, Vision, Barangay Name, Barangay Description are required!",
+        });
+
+    const oldContent = await PageContent.findById({ _id: id });
+    if (!oldContent)
+      return response
+        .status(404)
+        .json({ message: `Page content not found with ID: ${id}` });
 
     const updatedContent = await PageContent.findByIdAndUpdate(
       { _id: id },
@@ -72,6 +85,14 @@ const updatePageContents = async (request, response) => {
       },
       { new: true }
     );
+
+    await createLog({
+      action: LOGCONSTANTS.actions.pageContents.UPDATE_PAGECONTENTS,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "Page Content Updated",
+      description: `Page content for barangay "${barangayName}" was updated`,
+      performedBy: request.userId,
+    });
 
     response.json(updatedContent);
   } catch (error) {

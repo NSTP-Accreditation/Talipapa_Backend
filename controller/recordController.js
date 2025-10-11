@@ -1,4 +1,6 @@
 const Record = require("../model/Record");
+const { createLog } = require("../utils/logHelper");
+const { LOGCONSTANTS } = require("../config/constants");
 
 const getRecords = async (req, res) => {
   try {
@@ -23,11 +25,9 @@ const createRecord = async (req, res) => {
   });
 
   if (duplicateRecord)
-    return res
-      .status(409)
-      .json({
-        error: `Record ${firstName} ${middleName} ${lastName} Already Exists`,
-      });
+    return res.status(409).json({
+      error: `Record ${firstName} ${middleName} ${lastName} Already Exists`,
+    });
   try {
     const newRecord = await Record.create({
       firstName,
@@ -36,6 +36,14 @@ const createRecord = async (req, res) => {
       age,
       address,
       contactNumber,
+    });
+
+    await createLog({
+      action: LOGCONSTANTS.actions.records.CREATE_RECORD,
+      category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
+      title: "New Record Created",
+      description: `Created record for ${firstName} ${middleName} ${lastName} (${newRecord._id})`,
+      performedBy: request.userId,
     });
 
     res.status(201).json({
@@ -63,9 +71,9 @@ const updateRecord = async (req, res) => {
         _id: { $regex: `^${record_id}$`, $options: "i" },
         lastName: { $regex: `^${lastName}$`, $options: "i" },
       },
-      { 
+      {
         updatedAt: new Date(),
-        $inc: { points } 
+        $inc: { points },
       },
       { new: true }
     ).lean();
@@ -75,12 +83,12 @@ const updateRecord = async (req, res) => {
         .status(404)
         .json({ error: `Record ${record_id}: ${lastName} Not Found!` });
 
-    // TODO: RECORD LOG
-    // const newRecordLog = await RecordLog.create({
-    //   submitted_by: updatedRecord._id,
-    //   materials,
-    //   points_earned: points,
-    // });
+    await createLog({
+      action: LOGCONSTANTS.actions.records.UPDATE_RECORD,
+      category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
+      title: "Points Added to Record",
+      description: `Added ${points} points to ${updatedRecord.firstName} ${updatedRecord.lastName} (${record_id})`,
+    });
 
     res.json({
       record_id: updatedRecord._id,

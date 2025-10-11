@@ -1,6 +1,8 @@
 const User = require("../model/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { createLog } = require("../utils/logHelper");
+const { LOGCONSTANTS } = require("../config/constants");
 
 const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, roles, address, password } =
@@ -48,11 +50,20 @@ const handleCreateAccount = async (request, response) => {
       password: hashedPassword,
     });
 
+    // Log user registration
+    await createLog({
+      action: LOGCONSTANTS.actions.user.CREATE_USER,
+      category: LOGCONSTANTS.categories.AUTHENTICATION,
+      title: "New User Registered",
+      description: `User ${username} registered successfully`,
+      performedBy: request.userId,
+    });
+
     response
       .status(201)
       .json({ message: `User ${newUser.username} created successfully!` });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -61,13 +72,13 @@ const handleLogin = async (request, response) => {
   if (!username || !password)
     return response
       .status(400)
-      .json({ error: "Username and Password are required!" });
+      .json({ message: "Username and Password are required!" });
 
   const foundUser = await User.findOne({ username }).exec();
   if (!foundUser)
     return response
       .status(401)
-      .json({ error: "Username or Password is incorrect." });
+      .json({ message: "Username or Password is incorrect." });
 
   try {
     const match = await bcrypt.compare(password, foundUser.password);
@@ -78,6 +89,7 @@ const handleLogin = async (request, response) => {
       const accessToken = jwt.sign(
         {
           userInfo: {
+            _id: foundUser._id,
             username: foundUser.username,
             roles,
           },
@@ -101,6 +113,14 @@ const handleLogin = async (request, response) => {
         sameSite: "None",
       }); // TODO: Secure True, Samesite: Strict
 
+      // Log successful login
+      await createLog({
+        action: LOGCONSTANTS.actions.user.LOGIN,
+        category: LOGCONSTANTS.categories.AUTHENTICATION,
+        title: "User Login",
+        description: `User ${username} registered successfully`,
+      });
+
       response.json({
         userData: {
           username: foundUser.username,
@@ -110,10 +130,10 @@ const handleLogin = async (request, response) => {
     } else {
       response
         .status(401)
-        .json({ error: "Username or Password is incorrect." });
+        .json({ message: "Username or Password is incorrect." });
     }
   } catch (error) {
-    response.status(500).json({ error: error.message });
+    response.status(500).json({ message: error.message });
   }
 };
 
@@ -133,7 +153,7 @@ const handleRefreshToken = async (request, response) => {
       (err, decoded) => {
         if (err || decoded.username !== foundUser.username)
           return response.sendStatus(403);
-        const roles = Object.values(foundUser.roles)
+        const roles = Object.values(foundUser.roles);
         const accessToken = jwt.sign(
           {
             userInfo: {
@@ -149,7 +169,7 @@ const handleRefreshToken = async (request, response) => {
       }
     );
   } catch (error) {
-    response.status(500).json({ error: error.message });
+    response.status(500).json({ message: error.message });
   }
 };
 
@@ -175,6 +195,15 @@ const handleLogout = async (request, response) => {
     foundUser.refreshToken = "";
     await foundUser.save();
 
+    // Log logout
+    await createLog({
+      action: LOGCONSTANTS.actions.user.LOGOUT,
+      category: LOGCONSTANTS.categories.AUTHENTICATION,
+      title: "User Logout",
+      description: `User ${foundUser.username} logged out`,
+      performedBy: request.userId,
+    });
+
     response.clearCookie("refreshToken", {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
@@ -183,7 +212,7 @@ const handleLogout = async (request, response) => {
     });
     response.sendStatus(204);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 

@@ -1,20 +1,26 @@
 const User = require("../model/User");
+const { createLog } = require("../utils/logHelper");
+const { LOGCONSTANTS } = require("../config/constants");
 
 const getAllUsers = async (request, response) => {
   try {
     const users = await User.find({});
-    const result = users.map(({ _id, username, email, contactNumber, roles }) => {
-      const rolesKeys = Object.keys(roles).filter(role => roles[role] != null);
-      const result = {
-        _id,
-        username,
-        email,
-        contactNumber,
-        rolesKeys,
-      };
+    const result = users.map(
+      ({ _id, username, email, contactNumber, roles }) => {
+        const rolesKeys = Object.keys(roles).filter(
+          (role) => roles[role] != null
+        );
+        const result = {
+          _id,
+          username,
+          email,
+          contactNumber,
+          rolesKeys,
+        };
 
-      return result;
-    });
+        return result;
+      }
+    );
     return response.json(result);
   } catch (error) {
     response.status(500).json({ error: error.message });
@@ -34,6 +40,16 @@ const handleDeleteAccount = async (request, response) => {
         .json({ message: `User not found with ID ${id}` });
 
     await User.deleteOne({ _id: id });
+
+    // Log user deletion
+
+    await createLog({
+      action: LOGCONSTANTS.actions.user.DELETE_USER,
+      category: LOGCONSTANTS.categories.USER_MANAGEMENT,
+      title: "User Account Deleted",
+      description: `User "${foundUser.username}" was deleted`,
+      performedBy: request.userId,
+    });
 
     response.json({ message: "User Deleted Successfully" });
   } catch (error) {
