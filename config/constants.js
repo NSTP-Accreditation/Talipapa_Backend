@@ -55,4 +55,4 @@ const LOGCONSTANTS = {
 };
 
 
-module.exports = LOGCONSTANTS;
+module.exports = {LOGCONSTANTS};
