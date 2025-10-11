@@ -112,14 +112,14 @@ const deleteProduct = async (request, response) => {
         .status(404)
         .json({ message: `Product not found with ID ${id}` });
 
+    await Product.deleteOne({ _id: id });
+
     await createLog({
       action: LOGCONSTANTS.actions.products.DELETE_PRODUCT,
       category: LOGCONSTANTS.categories.INVENTORY,
-      title: `Product "${name}" was deleted`,
-      description: `Product "${deletedGuideline.title}" was deleted`,
+      title: `Product "${foundProduct.name}" was deleted`,
+      description: `Product "${foundProduct.name}" was deleted`,
     });
-
-    //await Product.deleteOne({ _id: id });
 
     response.json({ message: "Product Deleted Successfully" });
   } catch (error) {
