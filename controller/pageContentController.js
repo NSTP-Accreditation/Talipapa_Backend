@@ -1,5 +1,6 @@
 const PageContent = require("../model/PageContent");
 const { createLog } = require("../utils/logHelper");
+const { LOGCONSTANTS } = require("../config/constants");
 
 const getAllPageContents = async (request, response) => {
   try {
@@ -12,29 +13,24 @@ const getAllPageContents = async (request, response) => {
 };
 
 const postPageContents = async (request, response) => {
-  const { mission, vision, barangayName, barangayDescription } =
-    request.body;
+  const { mission, vision, barangayName, barangayDescription } = request.body;
 
   try {
     const allContent = await PageContent.find({});
     if (allContent.length > 0) {
       if (mission || vision || barangayName || barangayDescription) {
-        return response
-          .status(400)
-          .json({
-            message:
-              "Mission, Vision, Barangay Name and Barangay Description content is already defined!",
-          });
+        return response.status(400).json({
+          message:
+            "Mission, Vision, Barangay Name and Barangay Description content is already defined!",
+        });
       }
     }
 
     if (!mission || !vision || !barangayName || !barangayDescription)
-      return response
-        .status(400)
-        .json({
-          message:
-            "Mission Vision, brgy name and description content are required!",
-        });
+      return response.status(400).json({
+        message:
+          "Mission Vision, brgy name and description content are required!",
+      });
 
     const pageContent = await PageContent.create({
       mission,
@@ -43,19 +39,12 @@ const postPageContents = async (request, response) => {
       barangayDescription,
     });
 
-    // Log page content creation
     await createLog({
-      action: 'PAGE_CONTENT_CREATE',
-      category: 'CONTENT_MANAGEMENT',
-      title: 'Page Content Created',
+      action: LOGCONSTANTS.actions.pageContents.CREATE_PAGE_CONTENTS,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "New Page Content Created",
       description: `Page content for barangay "${barangayName}" was created`,
-      performedBy: request.user,
-      targetType: 'PAGE_CONTENT',
-      targetId: pageContent._id.toString(),
-      targetName: barangayName,
-      details: { mission, vision, barangayDescription },
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
     response.status(201).json(pageContent);
@@ -66,8 +55,7 @@ const postPageContents = async (request, response) => {
 
 const updatePageContents = async (request, response) => {
   const { id } = request.params;
-  const { mission, vision, barangayName, barangayDescription } =
-    request.body;
+  const { mission, vision, barangayName, barangayDescription } = request.body;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
@@ -75,10 +63,16 @@ const updatePageContents = async (request, response) => {
     if (!mission || !vision || !barangayName || !barangayDescription)
       return response
         .status(400)
-        .json({ message: "Mission, Vision, Barangay Name, Barangay Description are required!" });
+        .json({
+          message:
+            "Mission, Vision, Barangay Name, Barangay Description are required!",
+        });
 
     const oldContent = await PageContent.findById({ _id: id });
-    if (!oldContent) return response.status(404).json({ message: `Page content not found with ID: ${id}` });
+    if (!oldContent)
+      return response
+        .status(404)
+        .json({ message: `Page content not found with ID: ${id}` });
 
     const updatedContent = await PageContent.findByIdAndUpdate(
       { _id: id },
@@ -92,27 +86,12 @@ const updatePageContents = async (request, response) => {
       { new: true }
     );
 
-    // Log page content update
     await createLog({
-      action: 'PAGE_CONTENT_UPDATE',
-      category: 'CONTENT_MANAGEMENT',
-      title: 'Page Content Updated',
+      action: LOGCONSTANTS.actions.pageContents.UPDATE_PAGE_CONTENTS,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "Page Content Updated",
       description: `Page content for barangay "${barangayName}" was updated`,
-      performedBy: request.user,
-      targetType: 'PAGE_CONTENT',
-      targetId: id,
-      targetName: barangayName,
-      details: {
-        before: {
-          mission: oldContent.mission,
-          vision: oldContent.vision,
-          barangayName: oldContent.barangayName,
-          barangayDescription: oldContent.barangayDescription
-        },
-        after: { mission, vision, barangayName, barangayDescription }
-      },
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
     response.json(updatedContent);
