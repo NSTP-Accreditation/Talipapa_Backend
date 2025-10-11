@@ -1,5 +1,6 @@
 const Product = require("../model/Products");
 const { createLog } = require("../utils/logHelper");
+const { LOGCONSTANTS } = require("../config/constants");
 
 // TODO: ADD IMAGE AND UPDATE PRODUCT
 const getProducts = async (request, response) => {
@@ -36,22 +37,15 @@ const createProduct = async (request, response) => {
       requiredPoints,
     });
 
-    // Log product creation
     await createLog({
-      action: 'PRODUCT_CREATE',
-      category: 'INVENTORY',
-      title: 'New Product Created',
+      action: LOGCONSTANTS.actions.products.CREATE_PRODUCT,
+      category: LOGCONSTANTS.categories.INVENTORY,
+      title: "New Product Created",
       description: `Product "${name}" was added to inventory`,
-      performedBy: req.user,
-      targetType: 'PRODUCT',
-      targetId: newProduct._id.toString(),
-      targetName: name,
-      details: { category, subCategory, requiredPoints, stocks },
-      ipAddress: req.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
-    res.status(201).json({ message: `Product ${newProduct.name} Created!` });
+    response.status(201).json({ message: `Product ${newProduct.name} Created!` });
   } catch (error) {
     response.status(500).json({ error: error.message });
   }
@@ -67,36 +61,35 @@ const updateProduct = async (request, response) => {
 
   try {
     const oldProduct = await Product.findById(id).lean();
-    
-    const updatedProduct = await Product.findByIdAndUpdate(id, {
-      name,
-      description,
-      category,
-      subCategory,
-      stocks,
-      requiredPoints,
-    }, { new: true }).lean();
 
-    if(!updatedProduct) {
-      return response.status(404).json({ message: `Product not found with ID: ${id}`})
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        name,
+        description,
+        category,
+        subCategory,
+        stocks,
+        requiredPoints,
+
+        updatedAt: new Date()
+      },
+      { new: true }
+    ).lean();
+
+    if (!updatedProduct) {
+      return response
+        .status(404)
+        .json({ message: `Product not found with ID: ${id}` });
     }
 
     // Log product update
     await createLog({
-      action: 'PRODUCT_UPDATE',
-      category: 'INVENTORY',
-      title: 'Product Updated',
+      action: LOGCONSTANTS.actions.products.UPDATE_PRODUCT,
+      category: LOGCONSTANTS.categories.INVENTORY,
+      title: "Product Updated",
       description: `Product "${name}" was updated`,
-      performedBy: request.user,
-      targetType: 'PRODUCT',
-      targetId: id,
-      targetName: name,
-      details: { 
-        before: oldProduct,
-        after: updatedProduct 
-      },
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
     response.json(updatedProduct);
@@ -104,7 +97,6 @@ const updateProduct = async (request, response) => {
     response.status(500).json({ error: error.message });
   }
 };
-
 
 const deleteProduct = async (request, response) => {
   const { id } = request.params;
@@ -118,7 +110,15 @@ const deleteProduct = async (request, response) => {
         .status(404)
         .json({ message: `Product not found with ID ${id}` });
 
-    await Product.deleteOne({ _id: id });
+
+        await createLog({
+      action: LOGCONSTANTS.actions.products.DELETE_PRODUCT,
+      category: LOGCONSTANTS.categories.INVENTORY,
+      title: `Product "${name}" was deleted`,
+      description: `Product "${deletedGuideline.title}" was deleted`,
+    });
+
+    //await Product.deleteOne({ _id: id });
 
     response.json({ message: "Product Deleted Successfully" });
   } catch (error) {

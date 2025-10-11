@@ -1,5 +1,5 @@
 const Officials = require("../model/Officials");
-const officials = require("../model/Officials");
+const { LOGCONSTANTS } = require("../config/constants");
 const { createLog } = require("../utils/logHelper");
 
 const getAllOfficials = async (request, response) => {
@@ -17,34 +17,32 @@ const postOfficials = async (request, response) => {
 
   try {
     if (!name || !position)
-      return response.status(400).json({ message: "Name and Position is required!" });
+      return response
+        .status(400)
+        .json({ message: "Name and Position is required!" });
 
     const foundOfficial = await Officials.findOne({ name });
-    if(foundOfficial) return response.status(409).json({ message: `Official ${name} already exists. `});
+    if (foundOfficial)
+      return response
+        .status(409)
+        .json({ message: `Official ${name} already exists. ` });
 
-    const newsObject = await Officials.create({
+    const officialsObject = await Officials.create({
       name: name,
       position: position,
     });
 
-    // Log official creation
     await createLog({
-      action: 'OFFICIAL_CREATE',
-      category: 'CONTENT_MANAGEMENT',
-      title: 'Official Added',
+      action: LOGCONSTANTS.actions.officials.CREATE_OFFICIAL,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "New Official Created",
       description: `Official "${name}" was added with position ${position}`,
-      performedBy: request.user,
-      targetType: 'OFFICIAL',
-      targetId: newsObject._id.toString(),
-      targetName: name,
-      details: { position },
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
-    response.status(201).json(newsObject);
+    response.status(201).json(officialsObject);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    response.status(500).json({ error: error.message });
   }
 };
 const updateOfficials = async (request, response) => {
@@ -58,7 +56,10 @@ const updateOfficials = async (request, response) => {
       return response.status(400).json({ message: "All fields are required!" });
 
     const oldOfficial = await officials.findById({ _id: id });
-    if (!oldOfficial) return response.status(404).json({ message: `Official not found with ID: ${id}` });
+    if (!oldOfficial)
+      return response
+        .status(404)
+        .json({ message: `Official not found with ID: ${id}` });
 
     const updatedObject = await officials.findByIdAndUpdate(
       { _id: id },
@@ -66,27 +67,17 @@ const updateOfficials = async (request, response) => {
       { new: true }
     );
 
-    // Log official update
     await createLog({
-      action: 'OFFICIAL_UPDATE',
-      category: 'CONTENT_MANAGEMENT',
-      title: 'Official Updated',
+      action: LOGCONSTANTS.actions.officials.UPDATE_OFFICIAL,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "Officials Updated",
       description: `Official "${name}" was updated`,
-      performedBy: request.user,
-      targetType: 'OFFICIAL',
-      targetId: id,
-      targetName: name,
-      details: {
-        before: { name: oldOfficial.name, position: oldOfficial.position },
-        after: { name, position }
-      },
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
     response.json(updatedObject);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    response.status(500).json({ error: error.message });
   }
 };
 
@@ -104,24 +95,12 @@ const deleteOfficials = async (request, response) => {
 
     await Officials.deleteOne(foundObject);
 
-    // Log official deletion
     await createLog({
-      action: 'OFFICIAL_DELETE',
-      category: 'CONTENT_MANAGEMENT',
-      title: 'Official Deleted',
+      action: LOGCONSTANTS.actions.officials.DELETE_OFFICIAL,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "Official Deleted",
       description: `Official "${foundObject.name}" was deleted`,
-      performedBy: request.user,
-      targetType: 'OFFICIAL',
-      targetId: id,
-      targetName: foundObject.name,
-      details: {
-        deletedOfficial: {
-          name: foundObject.name,
-          position: foundObject.position
-        }
-      },
-      ipAddress: request.ip,
-      status: 'SUCCESS'
+      performedBy: request.userId,
     });
 
     return response.json({ message: "Officials Deleted Successfully" });

@@ -104,7 +104,7 @@ const deleteAchievements = async (request, response) => {
       action: LOGCONSTANTS.actions.achievements.DELETE_ACHIEVEMENT,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
       title: "Achievement Deleted",
-      description: `Achievement "${foundObject.title}" was updated`,
+      description: `Achievement "${foundObject.title}" was deleted`,
       performedBy: request.userId,
     });
 
