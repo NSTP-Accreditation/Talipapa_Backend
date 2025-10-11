@@ -165,7 +165,12 @@ const handleRefreshToken = async (request, response) => {
           { expiresIn: process.env.ACCESS_TOKEN_EXP }
         );
 
-        return response.json({ accessToken });
+        return response.json({
+          userData: {
+            username: foundUser.username,
+          },
+          accessToken: accessToken,
+        });
       }
     );
   } catch (error) {

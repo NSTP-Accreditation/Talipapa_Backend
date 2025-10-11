@@ -20,6 +20,17 @@ const createProduct = async (request, response) => {
 
   if (!name || !description || !category || !subCategory || !requiredPoints)
     return response.status(400).json({ error: "All Fields are required!" });
+  
+  if(isNaN(stocks) || isNaN(requiredPoints) || stocks < 0 || requiredPoints <= 0) {
+    return response.status(400).json({ error: "Stocks and Required Points should be a number" });
+  }
+
+  if (!request.file) {
+    return response.status(400).json({
+      success: false,
+      message: "Product image is required",
+    });
+  }
 
   try {
     const foundProduct = await Product.findOne({ name });
@@ -33,8 +44,15 @@ const createProduct = async (request, response) => {
       description,
       category,
       subCategory,
-      stocks,
-      requiredPoints,
+      stocks:  Number(stocks),
+      requiredPoints: Number(requiredPoints),
+      image: {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      },
     });
 
     await createLog({
@@ -62,8 +80,6 @@ const updateProduct = async (request, response) => {
     return response.status(400).json({ error: "All Fields are required!" });
 
   try {
-    const oldProduct = await Product.findById(id).lean();
-
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
       {
@@ -73,7 +89,6 @@ const updateProduct = async (request, response) => {
         subCategory,
         stocks,
         requiredPoints,
-
         updatedAt: new Date(),
       },
       { new: true }

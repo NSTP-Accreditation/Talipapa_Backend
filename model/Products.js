@@ -1,10 +1,10 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const productSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
@@ -12,29 +12,32 @@ const productSchema = new Schema({
   },
   category: {
     type: String,
-    required: true
+    required: true,
   },
   subCategory: {
     type: String,
-    required: true
+    required: true,
   },
   stocks: {
     type: Number,
-    default: 0
+    default: 0,
   },
   requiredPoints: {
     type: Number,
-    required: true
+    required: true,
   },
-  image: {
-    type: String,
+  image:  {
+    url: String,
+    key: String,
+    originalName: String,
+    size: Number,
+    mimetype: String
   },
   createdAt: {
     type: Date,
-    default: Date.now()
+    default: Date.now(),
   },
-  updatedAt: Date
+  updatedAt: Date,
 });
 
-
-module.exports = mongoose.model('Product', productSchema);
+module.exports = mongoose.model("Product", productSchema);
