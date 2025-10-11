@@ -87,7 +87,7 @@ const deleteOfficials = async (request, response) => {
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
   try {
-    const foundObject = await officials.findById({ _id: id });
+    const foundObject = await Officials.findById({ _id: id });
     if (!foundObject)
       return response
         .status(404)
