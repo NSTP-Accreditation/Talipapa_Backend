@@ -4,11 +4,12 @@ const { getProducts, createProduct, updateProduct, deleteProduct } = require('..
 const verifyJWT = require('../../middlewares/verifyJWT')
 const roles = require('../../config/roles');
 const verifyRoles = require('../../middlewares/verifyRoles');
+const upload = require('../../middlewares/fileUpload');
 
 
 router.route('/')
   .get(getProducts)
-  .post(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin), createProduct)
+  .post(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin), upload.single('image'), createProduct)
 
 router.route("/:id")
   .all(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin))
