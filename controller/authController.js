@@ -52,7 +52,7 @@ const handleCreateAccount = async (request, response) => {
       .status(201)
       .json({ message: `User ${newUser.username} created successfully!` });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -61,13 +61,13 @@ const handleLogin = async (request, response) => {
   if (!username || !password)
     return response
       .status(400)
-      .json({ error: "Username and Password are required!" });
+      .json({ message: "Username and Password are required!" });
 
   const foundUser = await User.findOne({ username }).exec();
   if (!foundUser)
     return response
       .status(401)
-      .json({ error: "Username or Password is incorrect." });
+      .json({ message: "Username or Password is incorrect." });
 
   try {
     const match = await bcrypt.compare(password, foundUser.password);
@@ -110,10 +110,10 @@ const handleLogin = async (request, response) => {
     } else {
       response
         .status(401)
-        .json({ error: "Username or Password is incorrect." });
+        .json({ message: "Username or Password is incorrect." });
     }
   } catch (error) {
-    response.status(500).json({ error: error.message });
+    response.status(500).json({ message: error.message });
   }
 };
 
@@ -149,7 +149,7 @@ const handleRefreshToken = async (request, response) => {
       }
     );
   } catch (error) {
-    response.status(500).json({ error: error.message });
+    response.status(500).json({ message: error.message });
   }
 };
 
@@ -183,7 +183,7 @@ const handleLogout = async (request, response) => {
     });
     response.sendStatus(204);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
