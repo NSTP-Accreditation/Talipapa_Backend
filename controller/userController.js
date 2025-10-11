@@ -1,4 +1,5 @@
 const User = require("../model/User");
+const { createLog } = require("../utils/logHelper");
 
 const getAllUsers = async (request, response) => {
   try {
@@ -34,6 +35,28 @@ const handleDeleteAccount = async (request, response) => {
         .json({ message: `User not found with ID ${id}` });
 
     await User.deleteOne(foundUser);
+
+    // Log user deletion
+    await createLog({
+      action: 'USER_DELETE',
+      category: 'USER_MANAGEMENT',
+      title: 'User Account Deleted',
+      description: `User "${foundUser.username}" account was deleted`,
+      performedBy: request.user,
+      targetType: 'USER',
+      targetId: id,
+      targetName: foundUser.username,
+      details: {
+        deletedUser: {
+          username: foundUser.username,
+          email: foundUser.email,
+          contactNumber: foundUser.contactNumber,
+          roles: foundUser.roles
+        }
+      },
+      ipAddress: request.ip,
+      status: 'SUCCESS'
+    });
 
     response.json({ message: "User Deleted Successfully" });
   } catch (error) {

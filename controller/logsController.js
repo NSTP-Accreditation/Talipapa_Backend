@@ -52,7 +52,7 @@ const getAllLogs = async (request, response) => {
   }
 };
 
-// POST - Create new log entry
+// POST - Create new log entry TODO: make a helper method that this will automatically posted in other controllers
 const postLogs = async (request, response) => {
   try {
     const { 
