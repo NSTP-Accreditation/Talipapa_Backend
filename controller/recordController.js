@@ -126,4 +126,44 @@ const getSingleRecord = async (req, res) => {
   }
 };
 
-module.exports = { getRecords, createRecord, updateRecord, getSingleRecord };
+const searchRecords = async (req, res) => {
+  const { query } = req.query;
+
+  if (!query)
+    return res
+      .status(400)
+      .json({ error: "Search query is required!" });
+
+  try {
+    const searchResults = await Record.find({
+      $or: [
+        { _id: { $regex: query, $options: "i" } },
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        { middleName: { $regex: query, $options: "i" } },
+      ]
+    })
+      .sort({ createdAt: -1 })
+      .limit(50) 
+      .lean();
+
+    if (!searchResults || searchResults.length === 0)
+      return res
+        .status(404)
+        .json({ 
+          message: "No records found matching your search.",
+          count: 0,
+          results: []
+        });
+
+    res.json({
+      message: "Records found",
+      count: searchResults.length,
+      results: searchResults
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { getRecords, createRecord, updateRecord, getSingleRecord, searchRecords };
