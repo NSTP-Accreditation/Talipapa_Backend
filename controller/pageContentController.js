@@ -40,7 +40,7 @@ const postPageContents = async (request, response) => {
     });
 
     await createLog({
-      action: LOGCONSTANTS.actions.pageContents.CREATE_PAGECONTENTS,
+      action: LOGCONSTANTS.actions.pageContents.CREATE_PAGE_CONTENTS,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
       title: "New Page Content Created",
       description: `Page content for barangay "${barangayName}" was created`,
@@ -87,7 +87,7 @@ const updatePageContents = async (request, response) => {
     );
 
     await createLog({
-      action: LOGCONSTANTS.actions.pageContents.UPDATE_PAGECONTENTS,
+      action: LOGCONSTANTS.actions.pageContents.UPDATE_PAGE_CONTENTS,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
       title: "Page Content Updated",
       description: `Page content for barangay "${barangayName}" was updated`,
