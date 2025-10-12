@@ -45,6 +45,8 @@ app.use("/guidelines", require("./routes/api/guidelinesRoute"));
 
 app.use("/officials", require("./routes/api/officialsRoute"));
 
+app.use("/farms", require("./routes/api/farmRoute"));
+
 app.use("/logs", require("./routes/api/logsRoute"));
 
 mongoose.connection.once("open", () => {

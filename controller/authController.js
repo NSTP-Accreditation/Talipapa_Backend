@@ -100,7 +100,7 @@ const handleLogin = async (request, response) => {
       const refreshToken = jwt.sign(
         { username: foundUser.username },
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: process.env.ACCESS_TOKEN_EXP }
+        { expiresIn: process.env.REFRESH_TOKEN_EXP || "7d" } // Use refresh token expiration
       );
 
       foundUser.refreshToken = refreshToken;
@@ -108,17 +108,18 @@ const handleLogin = async (request, response) => {
 
       response.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        secure: false,
-        sameSite: "None",
-      }); // TODO: Secure True, Samesite: Strict
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+      });
 
       // Log successful login
       await createLog({
         action: LOGCONSTANTS.actions.user.LOGIN,
         category: LOGCONSTANTS.categories.AUTHENTICATION,
         title: "User Login",
-        description: `User ${username} registered successfully`,
+        description: `User ${username} logged in successfully`, // Fixed description
+        performedBy: foundUser._id, // Use the logged-in user's ID
       });
 
       response.json({
@@ -153,6 +154,7 @@ const handleRefreshToken = async (request, response) => {
       (err, decoded) => {
         if (err || decoded.username !== foundUser.username)
           return response.sendStatus(403);
+        
         const roles = Object.values(foundUser.roles);
         const accessToken = jwt.sign(
           {
