@@ -141,8 +141,6 @@ const handleLogin = async (request, response) => {
 const handleRefreshToken = async (request, response) => {
   const cookies = request.cookies;
 
-  console.log(cookies);
-  
   if (!cookies?.refreshToken) return response.sendStatus(401);
   const refreshToken = cookies.refreshToken;
 

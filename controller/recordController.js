@@ -147,14 +147,14 @@ const searchRecords = async (req, res) => {
       .limit(50) 
       .lean();
 
-    if (!searchResults || searchResults.length === 0)
-      return res
-        .status(404)
-        .json({ 
-          message: "No records found matching your search.",
-          count: 0,
-          results: []
-        });
+    // if (!searchResults || searchResults.length === 0)
+    //   return res
+    //     .status(404)
+    //     .json({ 
+    //       message: "No records found matching your search.",
+    //       count: 0,
+    //       results: []
+    //     });
 
     res.json({
       message: "Records found",
