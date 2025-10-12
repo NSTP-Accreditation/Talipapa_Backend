@@ -14,6 +14,10 @@ const pageContentSchema = new Schema({
     type: String,
     required: true,
   },
+  barangayHistory: {
+    type: String,
+    required: true,
+  },
   barangayDescription: {
     type: String,
     required: true,
