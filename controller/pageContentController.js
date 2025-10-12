@@ -13,29 +13,30 @@ const getAllPageContents = async (request, response) => {
 };
 
 const postPageContents = async (request, response) => {
-  const { mission, vision, barangayName, barangayDescription } = request.body;
+  const { mission, vision, barangayName, barangayHistory, barangayDescription } = request.body;
 
   try {
     const allContent = await PageContent.find({});
     if (allContent.length > 0) {
-      if (mission || vision || barangayName || barangayDescription) {
+      if (mission || vision || barangayName || barangayHistory || barangayDescription) {
         return response.status(400).json({
           message:
-            "Mission, Vision, Barangay Name and Barangay Description content is already defined!",
+            "Mission, Vision, Barangay Name, Barangay History and Barangay Description content is already defined!",
         });
       }
     }
 
-    if (!mission || !vision || !barangayName || !barangayDescription)
+    if (!mission || !vision || !barangayName || !barangayHistory || !barangayDescription)
       return response.status(400).json({
         message:
-          "Mission Vision, brgy name and description content are required!",
+          "Mission, Vision, Barangay Name, Barangay History and Barangay Description are required!",
       });
 
     const pageContent = await PageContent.create({
       mission,
       vision,
       barangayName,
+      barangayHistory,
       barangayDescription,
     });
 
@@ -55,17 +56,17 @@ const postPageContents = async (request, response) => {
 
 const updatePageContents = async (request, response) => {
   const { id } = request.params;
-  const { mission, vision, barangayName, barangayDescription } = request.body;
+  const { mission, vision, barangayName, barangayHistory, barangayDescription } = request.body;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
   try {
-    if (!mission || !vision || !barangayName || !barangayDescription)
+    if (!mission || !vision || !barangayName || !barangayHistory || !barangayDescription)
       return response
         .status(400)
         .json({
           message:
-            "Mission, Vision, Barangay Name, Barangay Description are required!",
+            "Mission, Vision, Barangay Name, Barangay History, Barangay Description are required!",
         });
 
     const oldContent = await PageContent.findById({ _id: id });
@@ -80,6 +81,7 @@ const updatePageContents = async (request, response) => {
         mission,
         vision,
         barangayName,
+        barangayHistory,
         barangayDescription,
         updatedAt: new Date(),
       },

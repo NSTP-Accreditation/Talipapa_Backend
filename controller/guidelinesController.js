@@ -11,7 +11,8 @@ const getAllGuideline = async (request, response) => {
   }
 };
 const postGuideline = async (request, response) => {
-  const { category, title, description } = request.body;
+
+  const { category, title, description, difficultyLevel, totalEstimatedTime, steps } = request.body;
 
   try {
     if (!category || !title || !description) {
@@ -20,28 +21,35 @@ const postGuideline = async (request, response) => {
         .json({ message: "Category, Title, and Description are required!" });
     }
 
-    const newGuideline = await Guideline.create({
+    const guidelineData = {
       category,
       title,
       description,
-    });
+      difficultyLevel,
+      totalEstimatedTime,
+      steps: steps || []
+    };
+
+    const newGuideline = await Guideline.create(guidelineData);
 
     // Log guideline creation
     await createLog({
       action: LOGCONSTANTS.actions.guidelines.CREATE_GUIDELINE,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
       title: "New Guideline Created",
-      description: `Guideline "${title}" was created`,
+      description: `Guideline "${title}" was created with ${steps?.length || 0} steps`,
+      performedBy: request.userId
     });
 
     response.status(201).json(newGuideline);
   } catch (error) {
+    console.error('Error creating guideline:', error);
     response.status(500).json({ error: error.message });
   }
 };
 const updateGuideline = async (request, response) => {
   const { id } = request.params;
-  const { category, title, description } = request.body;
+  const { category, title, description, difficultyLevel, totalEstimatedTime, steps } = request.body;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
@@ -53,26 +61,31 @@ const updateGuideline = async (request, response) => {
 
     const oldGuideline = await Guideline.findById(id).lean();
 
+    if (!oldGuideline)
+      return response.status(404).json({ message: "Guideline not found!" });
+
+    const updateData = {
+      category,
+      title,
+      description,
+      difficultyLevel,
+      totalEstimatedTime,
+      steps: steps !== undefined ? steps : oldGuideline.steps,
+      updatedAt: new Date(),
+    };
+
     const updatedGuideline = await Guideline.findByIdAndUpdate(
       id,
-      {
-        category,
-        title,
-        description,
-        updatedAt: new Date(),
-      },
+      updateData,
       { new: true }
     );
 
-    if (!updatedGuideline)
-      return response.status(404).json({ message: "Guideline not found!" });
-
-    // Log guideline update
     await createLog({
       action: LOGCONSTANTS.actions.guidelines.UPDATE_GUIDELINE,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
       title: "Guideline Updated",
       description: `Guideline "${title}" was updated`,
+      performedBy: request.userId
     });
 
     response.json(updatedGuideline);

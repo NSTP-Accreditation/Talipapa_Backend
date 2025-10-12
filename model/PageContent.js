@@ -14,6 +14,10 @@ const pageContentSchema = new Schema({
     type: String,
     required: true,
   },
+  barangayHistory: {
+    type: String,
+    required: true,
+  },
   barangayDescription: {
     type: String,
     required: true,
@@ -28,5 +32,3 @@ const pageContentSchema = new Schema({
 });
 
 module.exports = mongoose.model("PageContent", pageContentSchema);
-
-// nag add ako ng baranggay_name at baranggay_description
