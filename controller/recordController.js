@@ -61,10 +61,10 @@ const updateRecord = async (req, res) => {
   const { lastName, points, materials } = req.body;
 
   try {
-    if (!record_id || !lastName || !points /* TODO: || !materials*/)
+    if (!record_id || !lastName)
       return res.status(400).json({ error: "All Fields are required!" });
 
-    // TODO: Ensure that the points is valid
+    // TODO: VALIDATE IF THE POINTS IS A NUMBER
 
     const updatedRecord = await Record.findOneAndUpdate(
       {
@@ -87,7 +87,7 @@ const updateRecord = async (req, res) => {
       action: LOGCONSTANTS.actions.records.UPDATE_RECORD,
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
       title: "Points Added to Record",
-      description: `Added ${points} points to ${updatedRecord.firstName} ${updatedRecord.lastName} (${record_id})`,
+      description: `Added ${points} points to ${record_id} with ${materials})`,
     });
 
     res.json({
