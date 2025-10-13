@@ -49,6 +49,9 @@ app.use("/farms", require("./routes/api/farmRoute"));
 
 app.use("/logs", require("./routes/api/logsRoute"));
 
+app.use("/skills", require("./routes/api/skillsRoute"));
+
+
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
 
