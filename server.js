@@ -51,6 +51,8 @@ app.use("/logs", require("./routes/api/logsRoute"));
 
 app.use("/skills", require("./routes/api/skillsRoute"));
 
+app.use("/staff", require("./routes/api/staffRoute"));
+
 
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");

@@ -1,3 +1,4 @@
+
 const Skills = require("../model/Skills");
 const { LOGCONSTANTS } = require("../config/constants");
 const { createLog } = require("../utils/logHelper");
@@ -42,6 +43,54 @@ const postSkills = async (request, response) => {
     response.status(201).json(skillsObject);
   } catch (error) {
     response.status(500).json({ error: error.message });
+  }
+};
+const postManySkills = async (request, response) => {
+  try {
+    // Accept either an array in the body or an object with a `skills` array
+    const payload = Array.isArray(request.body) ? request.body : request.body.skills;
+
+    if (!Array.isArray(payload) || payload.length === 0) {
+      return response.status(400).json({ message: "An array of skills is required in the request body." });
+    }
+
+    // Validate each skill item
+    const invalid = payload.find(
+      (s) => !s || !s.name || !s.short || !s.type
+    );
+    if (invalid)
+      return response.status(400).json({ message: "Each skill must include name, short and type." });
+
+    const names = payload.map((p) => p.name);
+
+    // Check for duplicates in payload
+    const dupInPayload = names.filter((item, idx) => names.indexOf(item) !== idx);
+    if (dupInPayload.length > 0)
+      return response.status(400).json({ message: `Duplicate skill names in payload: ${[...new Set(dupInPayload)].join(", ")}` });
+
+    // Check existing skills in DB
+    const existing = await Skills.find({ name: { $in: names } }).select("name");
+    if (existing && existing.length > 0) {
+      const existingNames = existing.map((e) => e.name);
+      return response.status(409).json({ message: `These skills already exist: ${existingNames.join(", ")}` });
+    }
+
+    // Insert many
+    const created = await Skills.insertMany(
+      payload.map((p) => ({ name: p.name, short: p.short, type: p.type }))
+    );
+
+    await createLog({
+      action: LOGCONSTANTS.actions.skills.CREATE_SKILL,
+      category: LOGCONSTANTS.categories.GREEN_PAGE,
+      title: "Multiple Skills Created",
+      description: `${created.length} skills were added: ${created.map((c) => c.name).join(", ")}`,
+      performedBy: request.userId,
+    });
+
+    return response.status(201).json(created);
+  } catch (error) {
+    return response.status(500).json({ error: error.message });
   }
 };
 const updateSkills = async (request, response) => {
@@ -113,4 +162,5 @@ module.exports = {
   postSkills,
   updateSkills,
   deleteSkills,
+  postManySkills,
 };
