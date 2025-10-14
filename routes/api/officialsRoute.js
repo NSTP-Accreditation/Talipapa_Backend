@@ -5,6 +5,7 @@ const {
   updateOfficials,
   deleteOfficials,
 } = require("../../controller/officialsController");
+
 const router = express.Router();
 const verifyJWT = require('../../middlewares/verifyJWT')
 const verifyRoles = require('../../middlewares/verifyRoles')
