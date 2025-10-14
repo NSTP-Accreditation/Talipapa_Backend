@@ -45,6 +45,7 @@ const postOfficials = async (request, response) => {
     response.status(500).json({ error: error.message });
   }
 };
+
 const updateOfficials = async (request, response) => {
   const { id } = request.params;
 
@@ -55,13 +56,13 @@ const updateOfficials = async (request, response) => {
     if (!name || !position)
       return response.status(400).json({ message: "All fields are required!" });
 
-    const oldOfficial = await officials.findById({ _id: id });
+    const oldOfficial = await Officials.findById({ _id: id });
     if (!oldOfficial)
       return response
         .status(404)
         .json({ message: `Official not found with ID: ${id}` });
 
-    const updatedObject = await officials.findByIdAndUpdate(
+    const updatedObject = await Officials.findByIdAndUpdate(
       { _id: id },
       { name: name, position: position, updatedAt: new Date() },
       { new: true }
@@ -80,6 +81,29 @@ const updateOfficials = async (request, response) => {
     response.status(500).json({ error: error.message });
   }
 };
+
+const bulkUpdate = async (req, res) => {
+  try {
+    const updates = req.body;
+    if (!Array.isArray(updates)) {
+      return res.status(400).json({ message: 'Invalid data format' });
+    }
+
+    const bulkOps = updates.map((off) => ({
+      updateOne: {
+        filter: { _id: off._id },
+        update: { name: off.name, position: off.position },
+      },
+    }));
+
+    await Officials.bulkWrite(bulkOps);
+
+    res.json({ message: 'Officials updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Bulk update failed' });
+  }
+}
 
 const deleteOfficials = async (request, response) => {
   const { id } = request.params;
@@ -113,5 +137,6 @@ module.exports = {
   getAllOfficials,
   postOfficials,
   updateOfficials,
+  bulkUpdate,
   deleteOfficials,
 };
