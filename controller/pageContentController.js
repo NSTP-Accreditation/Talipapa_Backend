@@ -2,11 +2,17 @@ const PageContent = require("../model/PageContent");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
 
-const getAllPageContents = async (request, response) => {
-  try {
-    const allContent = await PageContent.find({});
+const getPageContent = async (request, response) => {
+  const { id } = request.params;
 
-    response.json(allContent);
+  if (!id) return response.status(400).json({ message: "The ID is required!" });
+
+  try {
+    const content = await PageContent.findById(id);
+    if (!content)
+      return response.status(404).json({ message: `Page content not found with ID: ${id}` });
+
+    response.json(content);
   } catch (error) {
     response.status(500).json({ error: error.message });
   }
@@ -102,4 +108,4 @@ const updatePageContents = async (request, response) => {
   }
 };
 
-module.exports = { getAllPageContents, postPageContents, updatePageContents };
+module.exports = { getPageContent, postPageContents, updatePageContents };
