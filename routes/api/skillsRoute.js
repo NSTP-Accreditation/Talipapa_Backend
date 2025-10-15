@@ -4,6 +4,7 @@ const {
   postSkills,
   updateSkills,
   deleteSkills,
+  postManySkills,
 } = require("../../controller/skillsController");
 
 const router = express.Router();
@@ -14,6 +15,9 @@ const roles = require('../../config/roles');
 router.route("")
 .get(getAllSkills)
 .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postSkills);
+
+// POST multiple skills at once. Body should be an array of skill objects or { skills: [...] }
+router.route("/many").post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postManySkills);
 
 router.route("/:id")
 .put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateSkills)

@@ -4,15 +4,16 @@ const { getAllAchievements, postAchievements, updateAchievements, deleteAchievem
 const verifyJWT = require("../../middlewares/verifyJWT");
 const verifyRoles = require("../../middlewares/verifyRoles");
 const roles = require("../../config/roles");
+const upload = require('../../middlewares/fileUpload');
 
 router
     .route("")
     .get(getAllAchievements)
-    .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postAchievements);
+    .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), upload.single('image'), postAchievements);
 
 router
   .route("/:id")
-  .put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateAchievements)
+  .patch(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), upload.single('image'), updateAchievements)
   .delete(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), deleteAchievements);
 
 module.exports = router;

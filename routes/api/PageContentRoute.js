@@ -1,6 +1,6 @@
 const express = require("express");
 const {
-  getAllPageContents,
+  getPageContent,
   postPageContents,
   updatePageContents,
 } = require("../../controller/pageContentController");
@@ -11,8 +11,10 @@ const verifyRoles = require('../../middlewares/verifyRoles')
 const roles = require('../../config/roles');
 
 router.route("")
-      .get(getAllPageContents)
-      .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postPageContents);
+  .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postPageContents);
+
+// Get page content by id
+router.get("/:id", getPageContent);
 
 router.put("/:id", verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updatePageContents);
 

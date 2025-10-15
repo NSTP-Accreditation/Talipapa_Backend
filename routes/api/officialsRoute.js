@@ -4,6 +4,7 @@ const {
   postOfficials,
   updateOfficials,
   deleteOfficials,
+  bulkUpdate,
 } = require("../../controller/officialsController");
 
 const router = express.Router();
@@ -14,6 +15,8 @@ const roles = require('../../config/roles');
 router.route("")
 .get(getAllOfficials)
 .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postOfficials);
+
+router.put("/bulk-update", verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), bulkUpdate);
 
 router.route("/:id")
 .put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateOfficials)

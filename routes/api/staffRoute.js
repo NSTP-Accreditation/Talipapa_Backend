@@ -1,0 +1,30 @@
+const express = require("express");
+const router = express.Router();
+const verifyJWT = require("../../middlewares/verifyJWT");
+const verifyRoles = require("../../middlewares/verifyRoles");
+const roles = require("../../config/roles");
+
+const {
+  getAllStaff,
+  postStaff,
+  updateStaff,
+  deleteStaff,
+} = require("../../controller/staffController");
+
+const { getStaffByFarm } = require("../../controller/staffController");
+
+router
+  .route("")
+  .all(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin))
+  .get(getAllStaff)
+  .post(postStaff);
+
+// Get staff by assigned farm id
+router.route("/farm/:farmId").get(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), getStaffByFarm);
+
+router
+  .route(":id")
+  .put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateStaff)
+  .delete(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), deleteStaff);
+
+module.exports = router;
