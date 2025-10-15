@@ -14,19 +14,37 @@ const getAllAchievements = async (request, response) => {
 
 const postAchievements = async (request, response) => {
   const { title, description, link } = request.body;
+  if (!title || !description)
+    return response
+      .status(400)
+      .json({ message: "Title and Description are required!" });
+
+  if (!request.file) {
+    return response.status(400).json({
+      success: false,
+      message: "Product image is required",
+    });
+  }
+
   try {
-    if (!title || !description)
-      return response
-        .status(400)
-        .json({ message: "Title and Description are required!" });
-        
+
     const foundAchievement = await Achievements.findOne({ title }).lean();
-    if(foundAchievement) return response.status(409).json({ message: `Achievement with Title: ${title} already exists.`});
+    if (foundAchievement)
+      return response
+        .status(409)
+        .json({ message: `Achievement with Title: ${title} already exists.` });
 
     const achievementsObject = await Achievements.create({
       title: title,
       description: description,
       link: link,
+      image: {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      },
     });
 
     // Log achievement creation
