@@ -1,3 +1,4 @@
+const { LOGCONSTANTS } = require('../config/constants');
 const Farm = require('../model/Farm');
 
 const getFarms = async (req, res) => {
@@ -29,6 +30,17 @@ const addFarm = async (req, res) => {
       address,
       description,
       // image: req.file ? req.file.filename : ''
+    });
+
+    await createLog({
+      action: LOGCONSTANTS.actions.farms.CREATE_FARM,
+      category: LOGCONSTANTS.categories.GREEN_PAGE,
+      title: 'New Farm Created',
+      description: `Farm ${name} created successfully`,
+      performedBy: req.userId,
+      targetType: LOGCONSTANTS.targetTypes.FARM,
+      targetId: newFarm._id.toString(),
+      targetName: newFarm.name,
     });
 
     res.status(201).json({ message: 'New Farm Added!'});

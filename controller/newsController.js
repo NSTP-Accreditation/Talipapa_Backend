@@ -34,7 +34,10 @@ const postNews = async (request, response) => {
       title: "New News Created",
       description: `News article "${title}" was created`,
       performedBy: request.userId,
-
+      targetType: LOGCONSTANTS.targetTypes.NEWS,
+      targetId: newsObject._id.toString(),
+      targetName: title,
+      details: { category },
     });
 
     response.status(201).json(newsObject);
@@ -74,7 +77,10 @@ const updateNews = async (request, response) => {
       title: "News Updated",
       description: `News article "${title}" was updated`,
       performedBy: request.userId,
-
+      targetType: LOGCONSTANTS.targetTypes.NEWS,
+      targetId: newsObject._id.toString(),
+      targetName: title,
+      details: { category },
     });
 
     response.json(updatedObject);
@@ -103,6 +109,10 @@ const deleteNews = async (request, response) => {
       title: "News Deleted",
       description: `News article "${foundObject.title}" was deleted`,
       performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.NEWS,
+      targetId: foundObject._id.toString(),
+      targetName: foundObject.title,
+      details: { category: foundObject.category },
     });
 
     return response.json({ message: "News Deleted Successfully" });

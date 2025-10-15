@@ -1,7 +1,7 @@
 const Logs = require("../model/Logs");
 
 const createLog = async (logData) => {
-  const { action, category, title, description, performedBy } = logData;
+  const { action, category, title, description, performedBy, targetType, targetId, targetName, details } = logData;
   try {
     await Logs.create({
       action,
@@ -9,6 +9,10 @@ const createLog = async (logData) => {
       title,
       description,
       performedBy,
+      targetType,
+      targetId,
+      targetName,
+      details: { ...details },
     });
   } catch (error) {
     console.error("Failed to create log entry:", error.message);

@@ -27,7 +27,6 @@ const postAchievements = async (request, response) => {
   }
 
   try {
-
     const foundAchievement = await Achievements.findOne({ title }).lean();
     if (foundAchievement)
       return response
@@ -54,6 +53,10 @@ const postAchievements = async (request, response) => {
       title: "New Achievement Created",
       description: `Achievement "${title}" was created`,
       performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.ACHIEVEMENT,
+      targetId: achievementsObject._id.toString(),
+      targetName: title,
+      details: { link },
     });
 
     response.status(201).json(achievementsObject);
@@ -97,6 +100,17 @@ const updateAchievements = async (request, response) => {
       title: "Achievement Updated",
       description: `Achievement "${title}" was updated`,
       performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.ACHIEVEMENT,
+      targetId: id,
+      targetName: title,
+      details: {
+        before: {
+          title: oldAchievement.title,
+          description: oldAchievement.description,
+          link: oldAchievement.link,
+        },
+        after: { title, description, link },
+      },
     });
 
     response.status(200).json(updateAchievements);
@@ -124,6 +138,16 @@ const deleteAchievements = async (request, response) => {
       title: "Achievement Deleted",
       description: `Achievement "${foundObject.title}" was deleted`,
       performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.ACHIEVEMENT,
+      targetId: id,
+      targetName: foundObject.title,
+      details: {
+        deletedAchievement: {
+          title: foundObject.title,
+          description: foundObject.description,
+          link: foundObject.link,
+        },
+      },
     });
 
     response

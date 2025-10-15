@@ -57,6 +57,9 @@ const handleCreateAccount = async (request, response) => {
       title: "New User Registered",
       description: `User ${username} registered successfully`,
       performedBy: request.userId,
+      targetType: "USER",
+      targetId: newUser._id.toString(),
+      targetName: username,
     });
 
     response
@@ -118,8 +121,11 @@ const handleLogin = async (request, response) => {
         action: LOGCONSTANTS.actions.user.LOGIN,
         category: LOGCONSTANTS.categories.AUTHENTICATION,
         title: "User Login",
-        description: `User ${username} logged in successfully`, // Fixed description
-        performedBy: foundUser._id, // Use the logged-in user's ID
+        description: `User ${username} logged in successfully`,
+        performedBy: request.userId,
+        targetType: LOGCONSTANTS.targetTypes.USER,
+        targetId: foundUser._id.toString(),
+        targetName: username,
       });
 
       response.json({
@@ -154,7 +160,7 @@ const handleRefreshToken = async (request, response) => {
       (err, decoded) => {
         if (err || decoded.username !== foundUser.username)
           return response.sendStatus(403);
-        
+
         const roles = Object.values(foundUser.roles);
         const accessToken = jwt.sign(
           {
@@ -209,6 +215,9 @@ const handleLogout = async (request, response) => {
       title: "User Logout",
       description: `User ${foundUser.username} logged out`,
       performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.USER,
+      targetId: foundUser._id.toString(),
+      targetName: foundUser.username,
     });
 
     response.clearCookie("refreshToken", {

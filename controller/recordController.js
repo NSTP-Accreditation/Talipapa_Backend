@@ -44,6 +44,10 @@ const createRecord = async (req, res) => {
       title: "New Record Created",
       description: `Created record for ${firstName} ${middleName} ${lastName} (${newRecord._id})`,
       performedBy: req.userId,
+      targetType: LOGCONSTANTS.targetTypes.RECORD,
+      targetId: newRecord._id,
+      targetName: `${firstName} ${lastName}`,
+      details: { age, address, contactNumber },
     });
 
     res.status(201).json({
@@ -88,6 +92,16 @@ const updateRecord = async (req, res) => {
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
       title: "Points Added to Record",
       description: `Added ${points} points to ${record_id} with ${materials})`,
+      performedBy: req.userId,
+      targetType: LOGCONSTANTS.targetTypes.RECORD,
+      targetId: updatedRecord._id,
+      targetName: `${updatedRecord.firstName} ${updatedRecord.lastName}`,
+      details: {
+        pointsAdded: points,
+        previousPoints: updatedRecord.points - points,
+        newPoints: updatedRecord.points,
+        materials: materials,
+      },
     });
 
     res.json({
@@ -130,9 +144,7 @@ const searchRecords = async (req, res) => {
   const { query } = req.query;
 
   if (!query)
-    return res
-      .status(400)
-      .json({ error: "Search query is required!" });
+    return res.status(400).json({ error: "Search query is required!" });
 
   try {
     const searchResults = await Record.find({
@@ -141,16 +153,16 @@ const searchRecords = async (req, res) => {
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
         { middleName: { $regex: query, $options: "i" } },
-      ]
+      ],
     })
       .sort({ createdAt: -1 })
-      .limit(50) 
+      .limit(50)
       .lean();
 
     // if (!searchResults || searchResults.length === 0)
     //   return res
     //     .status(404)
-    //     .json({ 
+    //     .json({
     //       message: "No records found matching your search.",
     //       count: 0,
     //       results: []
@@ -159,11 +171,17 @@ const searchRecords = async (req, res) => {
     res.json({
       message: "Records found",
       count: searchResults.length,
-      results: searchResults
+      results: searchResults,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-module.exports = { getRecords, createRecord, updateRecord, getSingleRecord, searchRecords };
+module.exports = {
+  getRecords,
+  createRecord,
+  updateRecord,
+  getSingleRecord,
+  searchRecords,
+};

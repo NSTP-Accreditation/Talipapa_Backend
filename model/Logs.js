@@ -32,11 +32,29 @@ const logsSchema = new Schema({
     ref: 'User',
   },
   
-  // Timestamps
+  // Additional data
+  details: {
+    type: Schema.Types.Mixed,
+  },
+  
+  targetType: {
+    type: String,
+  },
+  
+  targetId: {
+    type: String,
+  },
+  
+  targetName: {
+    type: String,
+  },
+
+   // Timestamps
   created_at: {
     type: Date,
     default: Date.now,
   },
+  
 });
 
 // Index for better query performance

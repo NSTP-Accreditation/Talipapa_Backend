@@ -49,6 +49,18 @@ const createMaterial = async (request, response) => {
 
     const newMaterial = await Material.create(newMaterialData);
 
+    await createLog({
+      action: LOGCONSTANTS.actions.materials.CREATE_MATERIAL,
+      category: LOGCONSTANTS.categories.INVENTORY,
+      title: "New Material Created",
+      description: `Material "${name}" was created`,
+      performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.MATERIAL,
+      targetId: newMaterial._id.toString(),
+      targetName: name,
+      details: { category },
+    });
+
     response.status(201).json({ message: `${newMaterial.name} Added!` });
   } catch (error) {
     console.error("Error creating material:", error);
@@ -90,6 +102,18 @@ const updateMaterial = async (request, response) => {
       return response.status(404).json({ error: "Material not found" });
     }
 
+    await createLog({
+      action: LOGCONSTANTS.actions.materials.UPDATE_MATERIAL,
+      category: LOGCONSTANTS.categories.INVENTORY,
+      title: "Material Updated",
+      description: `Material "${name}" was updated`,
+      performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.MATERIAL,
+      targetId: updatedMaterial._id.toString(),
+      targetName: name,
+      details: { category },
+    });
+
     return response.json(updatedMaterial);
   } catch (error) {
     response.status(500).json({ error: error.message });
@@ -106,6 +130,17 @@ const deleteMaterial = async (request, response) => {
     const foundProduct = await Material.findById(id);
     if (!foundProduct)
       return response.status(404).json({ error: "Material not found" });
+
+    await createLog({
+      action: LOGCONSTANTS.actions.materials.DELETE_MATERIAL,
+      category: LOGCONSTANTS.categories.INVENTORY,
+      title: "Material Deleted",
+      description: `Material "${foundProduct.name}" was deleted`,
+      performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.MATERIAL,
+      targetName: foundProduct.name,
+      details: { category },
+    });
 
     response.json({ message: "Material Deleted Successfully! " });
   } catch (error) {
