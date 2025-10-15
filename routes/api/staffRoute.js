@@ -11,7 +11,7 @@ const {
   deleteStaff,
 } = require("../../controller/staffController");
 
-const { getStaffByFarm } = require("../../controller/staffController");
+const { getStaffByFarm, getStaffByFarmAndSkill } = require("../../controller/staffController");
 
 router
   .route("")
@@ -21,6 +21,9 @@ router
 
 // Get staff by assigned farm id
 router.route("/farm/:farmId").get(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), getStaffByFarm);
+
+// Get staff by farm and skill (skill id or skill name)
+router.route("/farm/:farmId/skill/:skillIdentifier").get(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), getStaffByFarmAndSkill);
 
 router
   .route(":id")

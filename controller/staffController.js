@@ -155,10 +155,40 @@ const getStaffByFarm = async (request, response) => {
   }
 };
 
+// Get staff by farm and skill (skillIdentifier can be skill _id or skill name)
+const getStaffByFarmAndSkill = async (request, response) => {
+  try {
+    const { farmId, skillIdentifier } = request.params;
+    if (!farmId || !skillIdentifier) return response.status(400).json({ message: "farmId and skillIdentifier are required" });
+
+    let skill = null;
+
+    // Try to interpret skillIdentifier as an ObjectId first
+    if (/^[0-9a-fA-F]{24}$/.test(skillIdentifier)) {
+      skill = await Skill.findById(skillIdentifier).select("_id name");
+    }
+
+    // If not found by id, try to find by name (case-insensitive)
+    if (!skill) {
+      skill = await Skill.findOne({ name: { $regex: `^${skillIdentifier}$`, $options: "i" } }).select("_id name");
+    }
+
+    if (!skill) return response.status(404).json({ message: `Skill not found: ${skillIdentifier}` });
+
+    // find staff assigned to farmId and having this skill id in skills array
+    const staff = await Staff.find({ assigned_farm: farmId, skills: skill._id }).populate("skills", "name").populate("assigned_farm", "name location");
+
+    return response.status(200).json({ skill: { id: skill._id, name: skill.name }, staff });
+  } catch (error) {
+    return response.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllStaff,
   getStaffByFarm,
   postStaff,
   updateStaff,
   deleteStaff,
+  getStaffByFarmAndSkill,
 };
