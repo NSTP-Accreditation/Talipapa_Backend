@@ -13,23 +13,26 @@ const getAllNews = async (request, response) => {
 };
 
 const postNews = async (request, response) => {
-  const { title, status, content } = request.body;
+  const { title, description, dateTime, location, category, priority } = request.body;
 
   try {
-    if (!title || !status || !content)
-      return response.status(400).json({ message: "All fields are required!" });
+    if (!title || !description || !dateTime || !location || !category || !priority)
+      return response.status(400).json({ message: "Missing required fields: title, description, dateTime" });
 
     const newsObject = await News.create({
       title: title,
-      status: status,
-      content: content,
+      description: description,
+      dateTime: new Date(dateTime),
+      location: location,
+      category: category,
+      priority: priority,
     });
 
     await createLog({
       action: LOGCONSTANTS.actions.news.CREATE_NEWS,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
       title: "New News Created",
-      description: `News article "${title}" was ${status === 'PUBLISHED' ? 'published' : 'created as draft'}`,
+      description: `News article "${title}" was created`,
       performedBy: request.userId,
 
     });
@@ -43,17 +46,25 @@ const updateNews = async (request, response) => {
   const { id } = request.params;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
-  const { title, status, content } = request.body;
+  const { title, description, dateTime, location, category, priority } = request.body;
 
   try {
-    if (!title || !status || !content)
-      return response.status(400).json({ message: "All fields are required!" });
+    if (!title || !description || !dateTime || !category || !priority)
+      return response.status(400).json({ message: "Missing required fields: title, description, dateTime" });
 
     const oldNews = await News.findById(id).lean();
 
     const updatedObject = await News.findByIdAndUpdate(
       { _id: id },
-      { title: title, status: status, content: content, updatedAt: new Date() },
+      {
+        title: title,
+        description: description,
+        dateTime: new Date(dateTime),
+        location: location,
+        category: category,
+        priority: priority,
+        updatedAt: new Date(),
+      },
       { new: true }
     );
 

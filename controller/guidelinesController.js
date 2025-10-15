@@ -12,7 +12,7 @@ const getAllGuideline = async (request, response) => {
 };
 const postGuideline = async (request, response) => {
 
-  const { category, title, description, difficultyLevel, totalEstimatedTime, steps } = request.body;
+  const { category, title, description, difficulty, totalEstimatedTime, lastUpdated, steps } = request.body;
 
   try {
     if (!category || !title || !description) {
@@ -21,13 +21,29 @@ const postGuideline = async (request, response) => {
         .json({ message: "Category, Title, and Description are required!" });
     }
 
+    // normalize steps: ensure each step has required fields and arrays are proper
+    const normalizedSteps = Array.isArray(steps)
+      ? steps.map((s, idx) => ({
+          stepNumber: s.stepNumber ?? idx + 1,
+          title: s.title || s.stepTitle || `Step ${idx + 1}`,
+          description: s.description || "",
+          location: s.location || "",
+          requiredDocuments: Array.isArray(s.requiredDocuments)
+            ? s.requiredDocuments
+            : (s.requiredDocuments ? [s.requiredDocuments] : []),
+          estimatedTime: s.estimatedTime || s.estimatedTime || "",
+          tips: Array.isArray(s.tips) ? s.tips : (s.tips ? [s.tips] : []),
+        }))
+      : [];
+
     const guidelineData = {
       category,
       title,
       description,
-      difficultyLevel,
+      difficulty,
       totalEstimatedTime,
-      steps: steps || []
+      lastUpdated: lastUpdated ? new Date(lastUpdated) : undefined,
+      steps: normalizedSteps,
     };
 
     const newGuideline = await Guideline.create(guidelineData);
@@ -37,7 +53,7 @@ const postGuideline = async (request, response) => {
       action: LOGCONSTANTS.actions.guidelines.CREATE_GUIDELINE,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
       title: "New Guideline Created",
-      description: `Guideline "${title}" was created with ${steps?.length || 0} steps`,
+      description: `Guideline "${title}" was created with ${normalizedSteps.length} steps`,
       performedBy: request.userId
     });
 
@@ -49,7 +65,7 @@ const postGuideline = async (request, response) => {
 };
 const updateGuideline = async (request, response) => {
   const { id } = request.params;
-  const { category, title, description, difficultyLevel, totalEstimatedTime, steps } = request.body;
+  const { category, title, description, difficulty, totalEstimatedTime, lastUpdated, steps } = request.body;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
@@ -64,13 +80,28 @@ const updateGuideline = async (request, response) => {
     if (!oldGuideline)
       return response.status(404).json({ message: "Guideline not found!" });
 
+    const normalizedSteps = Array.isArray(steps)
+      ? steps.map((s, idx) => ({
+          stepNumber: s.stepNumber ?? idx + 1,
+          title: s.title || s.stepTitle || `Step ${idx + 1}`,
+          description: s.description || "",
+          location: s.location || "",
+          requiredDocuments: Array.isArray(s.requiredDocuments)
+            ? s.requiredDocuments
+            : (s.requiredDocuments ? [s.requiredDocuments] : []),
+          estimatedTime: s.estimatedTime || "",
+          tips: Array.isArray(s.tips) ? s.tips : (s.tips ? [s.tips] : []),
+        }))
+      : oldGuideline.steps || [];
+
     const updateData = {
       category,
       title,
       description,
-      difficultyLevel,
+      difficulty,
       totalEstimatedTime,
-      steps: steps !== undefined ? steps : oldGuideline.steps,
+      lastUpdated: lastUpdated ? new Date(lastUpdated) : new Date(),
+      steps: normalizedSteps,
       updatedAt: new Date(),
     };
 

@@ -2,7 +2,11 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const stepSchema = new Schema({
-  stepTitle: {
+  stepNumber: {
+    type: Number,
+    required: true,
+  },
+  title: {
     type: String,
     required: true,
   },
@@ -14,19 +18,20 @@ const stepSchema = new Schema({
     type: String,
     required: false,
   },
+  
+  requiredDocuments: {
+    type: [String],
+    default: [],
+  },
   estimatedTime: {
     type: String,
     required: false,
   },
-  requiredDocuments: {
-    type: String,
-    required: false,
-  },
   tips: {
-    type: String,
-    required: false,
+    type: [String],
+    default: [],
   },
-}, { _id: true });
+});
 
 const guidelineSchema = new Schema({
   category: {
@@ -47,6 +52,14 @@ const guidelineSchema = new Schema({
   },
   totalEstimatedTime: {
     type: String,
+    required: false,
+  },
+  difficulty: {
+    type: String,
+    required: false,
+  },
+  lastUpdated: {
+    type: Date,
     required: false,
   },
   steps: {

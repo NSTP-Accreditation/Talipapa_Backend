@@ -6,21 +6,26 @@ const newsSchema = new Schema({
     type: String,
     required: true,
   },
-  status: {
-    type: String,
-    required: true,
-  }, // PUBLISHED OR DRAFT
-  content: {
+  description: {
     type: String,
     required: true,
   },
-  createdAt: {
+  dateTime: {
     type: Date,
-    default: Date.now,
+    required: true,
   },
-  updatedAt: {
-    type: Date,
+  location: {
+    type: String,
+    required: false,
   },
-});
+  category: {
+    type: String,
+    required: false,
+  },
+  priority: {
+    type: String,
+    required: false,
+  }
+}, { timestamps: true });
 
 module.exports = mongoose.model("News", newsSchema);
