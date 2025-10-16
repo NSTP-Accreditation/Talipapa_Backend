@@ -5,9 +5,28 @@ const { createLog } = require("../utils/logHelper");
 
 const getAllSkills = async (request, response) => {
   try {
-    const getAllSkills = await Skills.find({});
+    const skillsWithCount = await Skills.aggregate([
+      {
+        $lookup: {
+          from: "staffs", // collection name
+          localField: "_id",
+          foreignField: "skills",
+          as: "staffMembers"
+        }
+      },
+      {
+        $addFields: {
+          staffCount: { $size: "$staffMembers" }
+        }
+      },
+      {
+        $project: {
+          staffMembers: 0 // remove the staff array
+        }
+      }
+    ]);
 
-    response.json(getAllSkills);
+    response.json(skillsWithCount);
   } catch (error) {
     response.status(500).json({ error: error.message });
   }
@@ -45,6 +64,7 @@ const postSkills = async (request, response) => {
     response.status(500).json({ error: error.message });
   }
 };
+
 const postManySkills = async (request, response) => {
   try {
     // Accept either an array in the body or an object with a `skills` array
@@ -93,6 +113,7 @@ const postManySkills = async (request, response) => {
     return response.status(500).json({ error: error.message });
   }
 };
+
 const updateSkills = async (request, response) => {
   const { id } = request.params;
 
