@@ -13,11 +13,23 @@ const getAllNews = async (request, response) => {
 };
 
 const postNews = async (request, response) => {
-  const { title, description, dateTime, location, category, priority } = request.body;
+  const { title, description, dateTime, location, category, priority } =
+    request.body;
 
   try {
-    if (!title || !description || !dateTime || !location || !category || !priority)
-      return response.status(400).json({ message: "Missing required fields: title, description, dateTime" });
+    if (
+      !title ||
+      !description ||
+      !dateTime ||
+      !location ||
+      !category ||
+      !priority
+    )
+      return response
+        .status(400)
+        .json({
+          message: "Missing required fields: title, description, dateTime",
+        });
 
     const newsObject = await News.create({
       title: title,
@@ -49,13 +61,16 @@ const updateNews = async (request, response) => {
   const { id } = request.params;
 
   if (!id) return response.status(400).json({ message: "The ID is required!" });
-  const { title, description, dateTime, location, category, priority } = request.body;
+  const { title, description, dateTime, location, category, priority } =
+    request.body;
 
   try {
     if (!title || !description || !dateTime || !category || !priority)
-      return response.status(400).json({ message: "Missing required fields: title, description, dateTime" });
-
-    const oldNews = await News.findById(id).lean();
+      return response
+        .status(400)
+        .json({
+          message: "Missing required fields: title, description, dateTime",
+        });
 
     const updatedObject = await News.findByIdAndUpdate(
       { _id: id },
@@ -78,7 +93,7 @@ const updateNews = async (request, response) => {
       description: `News article "${title}" was updated`,
       performedBy: request.userId,
       targetType: LOGCONSTANTS.targetTypes.NEWS,
-      targetId: newsObject._id.toString(),
+      targetId: updatedObject._id.toString(),
       targetName: title,
       details: { category },
     });
@@ -122,4 +137,3 @@ const deleteNews = async (request, response) => {
 };
 
 module.exports = { getAllNews, postNews, updateNews, deleteNews };
-  
