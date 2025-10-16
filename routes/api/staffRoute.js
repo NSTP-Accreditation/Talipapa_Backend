@@ -38,7 +38,7 @@ router
   );
 
 router
-  .route(":id")
+  .route("/:id")
   .put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateStaff)
   .delete(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), deleteStaff);
 

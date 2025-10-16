@@ -19,19 +19,59 @@ const getAgeDistribution = async (req, res) => {
     const ageDistribution = await Staff.aggregate([
       {
         $match: {
-          age: { $exists: true, $ne: null } // Only staff with age
+          age: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $addFields: {
+          // Extract numeric age from string
+          numericAge: {
+            $switch: {
+              branches: [
+                { 
+                  case: { $eq: ["$age", "18-25 years old"] }, 
+                  then: 18 
+                },
+                { 
+                  case: { $eq: ["$age", "26-35 years old"] }, 
+                  then: 26 
+                },
+                { 
+                  case: { $eq: ["$age", "36-45 years old"] }, 
+                  then: 40 
+                },
+                { 
+                  case: { $eq: ["$age", "46-55 years old"] }, 
+                  then: 50 
+                },
+                { 
+                  case: { $regexMatch: { 
+                    input: "$age", 
+                    regex: /Above \d+ years old/ 
+                  }}, 
+                  then: 60
+                },
+              ],
+              default: null
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          numericAge: { $ne: null }
         }
       },
       {
         $bucket: {
-          groupBy: "$age",
-          boundaries: [18, 26, 36, 46, 56, 66, 100], // Age ranges: 18-25, 26-35, etc.
+          groupBy: "$numericAge",
+          boundaries: [18, 26, 36, 46, 56, 66, 100],
           default: "65+",
           output: {
             count: { $sum: 1 },
-            staff: { $push: { name: "$name", age: "$age" } }
-          }
-        }
+            staff: { $push: { name: "$name", age: "$age" } },
+          },
+        },
       },
       {
         $project: {
@@ -44,17 +84,18 @@ const getAgeDistribution = async (req, res) => {
                 { case: { $eq: ["$_id", 36] }, then: "36-45" },
                 { case: { $eq: ["$_id", 46] }, then: "46-55" },
                 { case: { $eq: ["$_id", 56] }, then: "56-65" },
-                { case: { $eq: ["$_id", "65+"] }, then: "65+" }
+                { case: { $eq: ["$_id", "65+"] }, then: "65+" },
               ],
-              default: "Unknown"
-            }
+              default: "Unknown",
+            },
           },
-          count: 1
-        }
+          count: 1,
+          staff: 1
+        },
       },
       {
-        $sort: { range: 1 }
-      }
+        $sort: { range: 1 },
+      },
     ]);
 
     res.json(ageDistribution);
@@ -78,20 +119,26 @@ const postStaff = async (request, response) => {
     } = request.body;
 
     if (!name || !age || !gender || !time_in_field)
-      return response.status(400).json({ message: "name, age, gender and time_in_field ar e required" });
+      return response
+        .status(400)
+        .json({ message: "name, age, gender and time_in_field ar e required" });
 
     // If skills provided as strings (ids), verify they exist
     let skillIds = [];
     if (skills) {
       if (!Array.isArray(skills))
-        return response.status(400).json({ message: "skills must be an array of skill IDs" });
+        return response
+          .status(400)
+          .json({ message: "skills must be an array of skill IDs" });
 
       skillIds = skills;
 
       // Verify all skills exist
       const found = await Skill.find({ _id: { $in: skillIds } }).select("_id");
       if (found.length !== skillIds.length)
-        return response.status(400).json({ message: "One or more provided skill IDs do not exist" });
+        return response
+          .status(400)
+          .json({ message: "One or more provided skill IDs do not exist" });
     }
 
     const staffObj = await Staff.create({
@@ -100,22 +147,28 @@ const postStaff = async (request, response) => {
       gender,
       email_address,
       position,
-      skills: skillIds,
+      skills: skillIds, 
       contact_number,
       assigned_farm,
       time_in_field,
     });
 
     await createLog({
-      action: LOGCONSTANTS.actions.user.CREATE_USER || LOGCONSTANTS.actions.skills.CREATE_SKILL,
-      category: LOGCONSTANTS.categories.USER_MANAGEMENT || LOGCONSTANTS.categories.GREEN_PAGE,
+      action:
+        LOGCONSTANTS.actions.user.CREATE_USER ||
+        LOGCONSTANTS.actions.skills.CREATE_SKILL,
+      category:
+        LOGCONSTANTS.categories.USER_MANAGEMENT ||
+        LOGCONSTANTS.categories.GREEN_PAGE,
       title: "Staff Created",
       description: `Staff "${name}" was created`,
       performedBy: request.userId,
     });
 
     // return created staff with populated skills
-  const populated = await Staff.findById(staffObj._id).populate("skills").populate("assigned_farm");
+    const populated = await Staff.findById(staffObj._id)
+      .populate("skills")
+      .populate("assigned_farm");
     return response.status(201).json(populated);
   } catch (error) {
     return response.status(500).json({ error: error.message });
@@ -129,34 +182,59 @@ const updateStaff = async (request, response) => {
   try {
     const updatePayload = { ...request.body, updatedAt: new Date() };
 
-  // If skills are provided, verify they exist
+    // If skills are provided, verify they exist
     if (updatePayload.skills) {
       if (!Array.isArray(updatePayload.skills))
-        return response.status(400).json({ message: "skills must be an array of skill IDs" });
+        return response
+          .status(400)
+          .json({ message: "skills must be an array of skill IDs" });
 
-      const found = await Skill.find({ _id: { $in: updatePayload.skills } }).select("_id");
+      const found = await Skill.find({
+        _id: { $in: updatePayload.skills },
+      }).select("_id");
       if (found.length !== updatePayload.skills.length)
-        return response.status(400).json({ message: "One or more provided skill IDs do not exist" });
+        return response
+          .status(400)
+          .json({ message: "One or more provided skill IDs do not exist" });
     }
 
     // If assigned_farm provided, validate farms exist
     if (updatePayload.assigned_farm) {
       if (!Array.isArray(updatePayload.assigned_farm))
-        return response.status(400).json({ message: "assigned_farm must be an array of farm IDs" });
+        return response
+          .status(400)
+          .json({ message: "assigned_farm must be an array of farm IDs" });
 
-      const foundFarms = await Farm.find({ _id: { $in: updatePayload.assigned_farm } }).select("_id");
+      const foundFarms = await Farm.find({
+        _id: { $in: updatePayload.assigned_farm },
+      }).select("_id");
       if (foundFarms.length !== updatePayload.assigned_farm.length)
-        return response.status(400).json({ message: "One or more provided assigned_farm IDs do not exist" });
+        return response
+          .status(400)
+          .json({
+            message: "One or more provided assigned_farm IDs do not exist",
+          });
     }
 
     const existing = await Staff.findById(id);
-    if (!existing) return response.status(404).json({ message: `Staff not found with ID: ${id}` });
+    if (!existing)
+      return response
+        .status(404)
+        .json({ message: `Staff not found with ID: ${id}` });
 
-  const updated = await Staff.findByIdAndUpdate(id, updatePayload, { new: true }).populate("skills").populate("assigned_farm");
+    const updated = await Staff.findByIdAndUpdate(id, updatePayload, {
+      new: true,
+    })
+      .populate("skills")
+      .populate("assigned_farm");
 
     await createLog({
-      action: LOGCONSTANTS.actions.user.UPDATE_USER || LOGCONSTANTS.actions.skills.UPDATE_SKILL,
-      category: LOGCONSTANTS.categories.USER_MANAGEMENT || LOGCONSTANTS.categories.GREEN_PAGE,
+      action:
+        LOGCONSTANTS.actions.user.UPDATE_USER ||
+        LOGCONSTANTS.actions.skills.UPDATE_SKILL,
+      category:
+        LOGCONSTANTS.categories.USER_MANAGEMENT ||
+        LOGCONSTANTS.categories.GREEN_PAGE,
       title: "Staff Updated",
       description: `Staff "${updated.name}" was updated`,
       performedBy: request.userId,
@@ -174,12 +252,19 @@ const deleteStaff = async (request, response) => {
 
   try {
     const found = await Staff.findById(id);
-    if (!found) return response.status(404).json({ message: `Staff not found with ID: ${id}` });
+    if (!found)
+      return response
+        .status(404)
+        .json({ message: `Staff not found with ID: ${id}` });
 
     await Staff.findByIdAndDelete(id);
     await createLog({
-      action: LOGCONSTANTS.actions.user.DELETE_USER || LOGCONSTANTS.actions.skills.DELETE_SKILL,
-      category: LOGCONSTANTS.categories.USER_MANAGEMENT || LOGCONSTANTS.categories.GREEN_PAGE,
+      action:
+        LOGCONSTANTS.actions.user.DELETE_USER ||
+        LOGCONSTANTS.actions.skills.DELETE_SKILL,
+      category:
+        LOGCONSTANTS.categories.USER_MANAGEMENT ||
+        LOGCONSTANTS.categories.GREEN_PAGE,
       title: "Staff Deleted",
       description: `Staff "${found.name}" was deleted`,
       performedBy: request.userId,
@@ -194,10 +279,13 @@ const deleteStaff = async (request, response) => {
 const getStaffByFarm = async (request, response) => {
   try {
     const { farmId } = request.params;
-    if (!farmId) return response.status(400).json({ message: "farmId is required" });
+    if (!farmId)
+      return response.status(400).json({ message: "farmId is required" });
 
     // Find staff where assigned_farm contains the farmId
-    const staff = await Staff.find({ assigned_farm: farmId }).populate("skills");
+    const staff = await Staff.find({ assigned_farm: farmId }).populate(
+      "skills"
+    );
     return response.status(200).json(staff);
   } catch (error) {
     return response.status(500).json({ error: error.message });
@@ -208,7 +296,10 @@ const getStaffByFarm = async (request, response) => {
 const getStaffByFarmAndSkill = async (request, response) => {
   try {
     const { farmId, skillIdentifier } = request.params;
-    if (!farmId || !skillIdentifier) return response.status(400).json({ message: "farmId and skillIdentifier are required" });
+    if (!farmId || !skillIdentifier)
+      return response
+        .status(400)
+        .json({ message: "farmId and skillIdentifier are required" });
 
     let skill = null;
 
@@ -219,15 +310,24 @@ const getStaffByFarmAndSkill = async (request, response) => {
 
     // If not found by id, try to find by name (case-insensitive)
     if (!skill) {
-      skill = await Skill.findOne({ name: { $regex: `^${skillIdentifier}$`, $options: "i" } }).select("_id name");
+      skill = await Skill.findOne({
+        name: { $regex: `^${skillIdentifier}$`, $options: "i" },
+      }).select("_id name");
     }
 
-    if (!skill) return response.status(404).json({ message: `Skill not found: ${skillIdentifier}` });
+    if (!skill)
+      return response
+        .status(404)
+        .json({ message: `Skill not found: ${skillIdentifier}` });
 
     // find staff assigned to farmId and having this skill id in skills array
-    const staff = await Staff.find({ assigned_farm: farmId, skills: skill._id }).populate("skills", "name").populate("assigned_farm", "name location");
+    const staff = await Staff.find({ assigned_farm: farmId, skills: skill._id })
+      .populate("skills", "name")
+      .populate("assigned_farm", "name location");
 
-    return response.status(200).json({ skill: { id: skill._id, name: skill.name }, staff });
+    return response
+      .status(200)
+      .json({ skill: { id: skill._id, name: skill.name }, staff });
   } catch (error) {
     return response.status(500).json({ error: error.message });
   }

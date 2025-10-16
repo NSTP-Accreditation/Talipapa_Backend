@@ -26,10 +26,6 @@ const staffSchema = new Schema({
         type: String,
         required: true,
       },
-      isCustom: {
-        type: Boolean,
-        default: false,
-      },
     },
   ],
   // Reference to Skill documents instead of embedding
