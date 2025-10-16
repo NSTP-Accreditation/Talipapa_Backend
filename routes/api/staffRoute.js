@@ -9,9 +9,11 @@ const {
   postStaff,
   updateStaff,
   deleteStaff,
+  getStaffByFarm,
+  getStaffByFarmAndSkill,
+  getAgeDistribution,
 } = require("../../controller/staffController");
 
-const { getStaffByFarm, getStaffByFarmAndSkill } = require("../../controller/staffController");
 
 router
   .route("")
@@ -19,11 +21,21 @@ router
   .get(getAllStaff)
   .post(postStaff);
 
+router.get('/ageDistribution', getAgeDistribution);
+
 // Get staff by assigned farm id
-router.route("/farm/:farmId").get(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), getStaffByFarm);
+router
+  .route("/farm/:farmId")
+  .get(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), getStaffByFarm);
 
 // Get staff by farm and skill (skill id or skill name)
-router.route("/farm/:farmId/skill/:skillIdentifier").get(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), getStaffByFarmAndSkill);
+router
+  .route("/farm/:farmId/skill/:skillIdentifier")
+  .get(
+    verifyJWT,
+    verifyRoles(roles.SuperAdmin, roles.Admin),
+    getStaffByFarmAndSkill
+  );
 
 router
   .route(":id")

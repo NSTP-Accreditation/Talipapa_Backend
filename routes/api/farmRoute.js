@@ -7,8 +7,7 @@ const ROLES = require('../../config/roles');
 // const upload = require('../../middlewares/fileUpload');
 
 router.route('/')
-  .all(verifyJWT, verifyRoles(ROLES.Admin))
   .get(getFarms)
-  .post(addFarm)
+  .post(verifyJWT, verifyRoles(ROLES.Admin), addFarm)
 
 module.exports = router;
