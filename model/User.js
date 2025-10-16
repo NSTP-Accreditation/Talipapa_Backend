@@ -16,14 +16,14 @@ const userSchema = new Schema({
   },
   address: {
     type: String,
-    required: true
+    // required: true
   },
   roles: {
     Admin: {
       type: Number,
       default: 92781
     },
-    SuperAdmin: Number
+    Editor: Number
   },
   password: {
     type: String,

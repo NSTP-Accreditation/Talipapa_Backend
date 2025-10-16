@@ -13,16 +13,16 @@ router
   .get(getAllGuideline)
 
   // POST new guideline
-  .post(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin), postGuideline);
+  .post(verifyJWT, verifyRoles(roles.Admin), postGuideline);
 
 // UPDATE a guideline
 // DELETE a guideline
 router
   .route("/:id")
   // PUT update
-  .put(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin), updateGuideline)
+  .put(verifyJWT, verifyRoles(roles.Admin), updateGuideline)
 
   // DELETE guideline
-  .delete(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin), deleteGuideline);
+  .delete(verifyJWT, verifyRoles(roles.Admin), deleteGuideline);
 
 module.exports = router;

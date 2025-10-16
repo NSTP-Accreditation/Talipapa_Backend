@@ -14,26 +14,26 @@ const roles = require("../../config/roles");
 router.get(
   "/search",
   verifyJWT,
-  verifyRoles(roles.SuperAdmin, roles.Admin),
+  verifyRoles(roles.Admin),
   searchRecords
 );
 
 router
   .route("/")
-  .all(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin))
+  .all(verifyJWT, verifyRoles(roles.Admin))
   .get(getRecords)
   .post(createRecord);
 
 router.patch(
   "/:record_id",
   verifyJWT,
-  verifyRoles(roles.SuperAdmin, roles.Admin),
+  verifyRoles(roles.Admin),
   updateRecord
 );
 router.get(
   "/:record_id",
   verifyJWT,
-  verifyRoles(roles.SuperAdmin, roles.Admin),
+  verifyRoles(roles.Admin),
   getSingleRecord
 );
 

@@ -17,7 +17,7 @@ const {
 
 router
   .route("")
-  .all(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin))
+  .all(verifyJWT, verifyRoles(roles.Admin))
   .get(getAllStaff)
   .post(postStaff);
 
@@ -26,20 +26,20 @@ router.get('/ageDistribution', getAgeDistribution);
 // Get staff by assigned farm id
 router
   .route("/farm/:farmId")
-  .get(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), getStaffByFarm);
+  .get(verifyJWT, verifyRoles(roles.Admin), getStaffByFarm);
 
 // Get staff by farm and skill (skill id or skill name)
 router
   .route("/farm/:farmId/skill/:skillIdentifier")
   .get(
     verifyJWT,
-    verifyRoles(roles.SuperAdmin, roles.Admin),
+    verifyRoles(roles.Admin),
     getStaffByFarmAndSkill
   );
 
 router
   .route("/:id")
-  .put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateStaff)
-  .delete(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), deleteStaff);
+  .put(verifyJWT, verifyRoles(roles.Admin), updateStaff)
+  .delete(verifyJWT, verifyRoles(roles.Admin), deleteStaff);
 
 module.exports = router;

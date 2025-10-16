@@ -9,10 +9,10 @@ const upload = require('../../middlewares/fileUpload');
 
 router.route('/')
   .get(getProducts)
-  .post(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin), upload.single('image'), createProduct)
+  .post(verifyJWT, verifyRoles(roles.Admin), upload.single('image'), createProduct)
 
 router.route("/:id")
-  .all(verifyJWT, verifyRoles(roles.Admin, roles.SuperAdmin))
+  .all(verifyJWT, verifyRoles(roles.Admin))
   .put(updateProduct)
   .delete(deleteProduct)
 module.exports = router;

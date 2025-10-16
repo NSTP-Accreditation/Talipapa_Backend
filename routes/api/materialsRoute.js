@@ -16,13 +16,13 @@ router.get("/", getMaterials);
 
 router
   .route("/")
-  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
+  .all(verifyJWT, verifyRoles(roles.Admin))
   .post(createMaterial)
   .delete(deleteAllMaterial);
 
 router
   .route("/:id")
-  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
+  .all(verifyJWT, verifyRoles(roles.Admin))
   .patch(updateMaterial)
   .delete(deleteMaterial);
 

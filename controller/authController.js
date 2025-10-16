@@ -8,10 +8,10 @@ const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, roles, address, password } =
     request.body;
 
-  if (!username || !email | !contactNumber || !address || !password)
+  if (!username || !email | !contactNumber || !password)
     return response.status(400).json({
       message:
-        "Username, Email, Contact Number Address and Password is required!",
+        "Username, Email, Contact Number and Password is required!",
     });
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

@@ -1,6 +1,6 @@
 const ROLES = {
-  "SuperAdmin": 56123,
-  "Admin": 92781
+  "Admin": 92781,
+  "Editor": 32562
 }
 
 module.exports = ROLES;

@@ -8,11 +8,11 @@ const roles = require("../../config/roles");
 router
   .route("")
   .get(getAllNews)
-  .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postNews)
+  .post(verifyJWT, verifyRoles(roles.Admin), postNews)
 
 router
   .route("/:id")
-  .put(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updateNews)
-  .delete(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), deleteNews);
+  .put(verifyJWT, verifyRoles(roles.Admin), updateNews)
+  .delete(verifyJWT, verifyRoles(roles.Admin), deleteNews);
 
 module.exports = router;

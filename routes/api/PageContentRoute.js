@@ -11,11 +11,11 @@ const verifyRoles = require('../../middlewares/verifyRoles')
 const roles = require('../../config/roles');
 
 router.route("")
-  .post(verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), postPageContents);
+  .post(verifyJWT, verifyRoles(roles.Admin), postPageContents);
 
 // Get page content by id
 router.get("/:id", getPageContent);
 
-router.put("/:id", verifyJWT, verifyRoles(roles.SuperAdmin, roles.Admin), updatePageContents);
+router.put("/:id", verifyJWT, verifyRoles(roles.Admin), updatePageContents);
 
 module.exports = router;

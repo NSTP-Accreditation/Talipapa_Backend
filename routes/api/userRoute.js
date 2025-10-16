@@ -9,8 +9,8 @@ const verifyRoles = require('../../middlewares/verifyRoles');
 const ROLES = require('../../config/roles');
 
 router.route("")
-      .get(verifyJWT, verifyRoles(ROLES.SuperAdmin), getAllUsers);
+      .get(verifyJWT, verifyRoles(ROLES.Admin), getAllUsers);
       
-router.delete("/:id", verifyJWT, verifyRoles(ROLES.SuperAdmin), handleDeleteAccount);
+router.delete("/:id", verifyJWT, verifyRoles(ROLES.Admin), handleDeleteAccount);
 
 module.exports = router;
