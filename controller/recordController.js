@@ -87,22 +87,33 @@ const updateRecord = async (req, res) => {
         .status(404)
         .json({ error: `Record ${record_id}: ${lastName} Not Found!` });
 
-    await createLog({
+    const logPayload = {
       action: LOGCONSTANTS.actions.records.UPDATE_RECORD,
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
-      title: "Points Added to Record",
-      description: `Added ${points} points to ${record_id} with ${materials})`,
+      title:
+        points > 0 ? "Points Added to Record" : "Points Deducted from Record",
+      description:
+        points > 0
+          ? `Added ${points} points to ${record_id} with ${materials}`
+          : `Deducted ${points} points from ${record_id})`,
       performedBy: req.userId,
       targetType: LOGCONSTANTS.targetTypes.RECORD,
       targetId: updatedRecord._id,
       targetName: `${updatedRecord.firstName} ${updatedRecord.lastName}`,
       details: {
-        pointsAdded: points,
+        // pointsAdded: points,
         previousPoints: updatedRecord.points - points,
         newPoints: updatedRecord.points,
         materials: materials,
       },
-    });
+    };
+
+    if (points > 0) {
+      logPayload.details.pointsAdded = points;
+    } else {
+      logPayload.details.pointsDeducted = points;
+    }
+    await createLog(logPayload);
 
     res.json({
       record_id: updatedRecord._id,
