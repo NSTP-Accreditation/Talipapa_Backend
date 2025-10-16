@@ -31,7 +31,7 @@ app.use('/users', require('./routes/api/userRoute'));
 
 app.use("/news", require("./routes/api/newsRoute"));
 
-app.use("/pagecontent", require("./routes/api/PageContentRoute"));
+app.use("/pagecontent", require("./routes/api/pageContentRoute"));
 
 app.use("/achievements", require("./routes/api/achievementsRoute"));
 
