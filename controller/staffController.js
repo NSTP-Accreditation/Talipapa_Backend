@@ -14,6 +14,55 @@ const getAllStaff = async (request, response) => {
   }
 };
 
+const getAgeDistribution = async (req, res) => {
+  try {
+    const ageDistribution = await Staff.aggregate([
+      {
+        $match: {
+          age: { $exists: true, $ne: null } // Only staff with age
+        }
+      },
+      {
+        $bucket: {
+          groupBy: "$age",
+          boundaries: [18, 26, 36, 46, 56, 66, 100], // Age ranges: 18-25, 26-35, etc.
+          default: "65+",
+          output: {
+            count: { $sum: 1 },
+            staff: { $push: { name: "$name", age: "$age" } }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          range: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$_id", 18] }, then: "18-25" },
+                { case: { $eq: ["$_id", 26] }, then: "26-35" },
+                { case: { $eq: ["$_id", 36] }, then: "36-45" },
+                { case: { $eq: ["$_id", 46] }, then: "46-55" },
+                { case: { $eq: ["$_id", 56] }, then: "56-65" },
+                { case: { $eq: ["$_id", "65+"] }, then: "65+" }
+              ],
+              default: "Unknown"
+            }
+          },
+          count: 1
+        }
+      },
+      {
+        $sort: { range: 1 }
+      }
+    ]);
+
+    res.json(ageDistribution);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const postStaff = async (request, response) => {
   try {
     const {
@@ -29,7 +78,7 @@ const postStaff = async (request, response) => {
     } = request.body;
 
     if (!name || !age || !gender || !time_in_field)
-      return response.status(400).json({ message: "name, age, gender and time_in_field are required" });
+      return response.status(400).json({ message: "name, age, gender and time_in_field ar e required" });
 
     // If skills provided as strings (ids), verify they exist
     let skillIds = [];
@@ -187,6 +236,7 @@ const getStaffByFarmAndSkill = async (request, response) => {
 module.exports = {
   getAllStaff,
   getStaffByFarm,
+  getAgeDistribution,
   postStaff,
   updateStaff,
   deleteStaff,
