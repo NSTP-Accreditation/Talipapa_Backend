@@ -28,14 +28,7 @@ const recordSchema = new Schema({
     default: 0
   },
   contact_number: String,
-  createdAt: {
-    type: Date,
-    default: Date.now()
-  },
-  updatedAt: {
-    type: Date
-  }
-});
+}, { timestamps: true });
 
 recordSchema.pre('save', async function (next) {
   if (this.isNew) {

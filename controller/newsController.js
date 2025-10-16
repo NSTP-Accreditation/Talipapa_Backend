@@ -122,3 +122,4 @@ const deleteNews = async (request, response) => {
 };
 
 module.exports = { getAllNews, postNews, updateNews, deleteNews };
+  

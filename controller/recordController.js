@@ -4,7 +4,7 @@ const { LOGCONSTANTS } = require("../config/constants");
 
 const getRecords = async (req, res) => {
   try {
-    const records = await Record.find().sort({ created_at: -1 });
+    const records = await Record.find().sort({ createdAt: -1 });
     if (!records) return res.status(200).json({ message: "No Records Found." });
     res.json(records);
   } catch (error) {
@@ -54,6 +54,7 @@ const createRecord = async (req, res) => {
       message: `${newRecord._id}: ${newRecord.lastName} New Record Created!`,
       record_id: newRecord._id,
       lastName,
+      createdAt: newRecord.createdAt
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
