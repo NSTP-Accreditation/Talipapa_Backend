@@ -10,6 +10,28 @@ const getAllGuideline = async (request, response) => {
     response.status(500).json({ error: error.message });
   }
 };
+
+const getSingleGuideline = async (request, response) => {
+  const { id } = request.params;
+
+  if (!id) {
+    return response.status(400).json({ message: "The ID is required!" });
+  }
+
+  try {
+    const guideline = await Guideline.findById(id);
+
+    if (!guideline) {
+      return response.status(404).json({ message: "Guideline not found!" });
+    }
+
+    response.json(guideline);
+  } catch (error) {
+    console.error("Error fetching guideline:", error);
+    response.status(500).json({ error: error.message });
+  }
+};
+
 const postGuideline = async (request, response) => {
   const {
     category,
@@ -76,6 +98,7 @@ const postGuideline = async (request, response) => {
     response.status(500).json({ error: error.message });
   }
 };
+
 const updateGuideline = async (request, response) => {
   const { id } = request.params;
   const {
@@ -139,7 +162,7 @@ const updateGuideline = async (request, response) => {
       description: `Guideline "${title}" was updated`,
       performedBy: request.userId,
       targetType: LOGCONSTANTS.targetTypes.GUIDELINE,
-      targetId: newGuideline._id.toString(),
+      targetId: updatedGuideline._id.toString(),
       targetName: title,
       details: { category },
     });
@@ -149,6 +172,7 @@ const updateGuideline = async (request, response) => {
     response.status(500).json({ error: error.message });
   }
 };
+
 const deleteGuideline = async (request, response) => {
   const { id } = request.params;
 
@@ -180,6 +204,7 @@ const deleteGuideline = async (request, response) => {
 
 module.exports = {
   getAllGuideline,
+  getSingleGuideline,
   updateGuideline,
   deleteGuideline,
   postGuideline,

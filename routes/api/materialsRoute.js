@@ -9,7 +9,7 @@ const {
 } = require("../../controller/materialController");
 const verifyJWT = require("../../middlewares/verifyJWT");
 const verifyRoles = require("../../middlewares/verifyRoles");
-// const upload = require('../../middleware/upload');
+const upload = require('../../middlewares/fileUpload');
 const roles = require("../../config/roles");
 
 router.get("/", getMaterials);
@@ -17,7 +17,7 @@ router.get("/", getMaterials);
 router
   .route("/")
   .all(verifyJWT, verifyRoles(roles.Admin))
-  .post(createMaterial)
+  .post(upload.single('image'), createMaterial)
   .delete(deleteAllMaterial);
 
 router

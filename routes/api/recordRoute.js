@@ -32,8 +32,6 @@ router.patch(
 );
 router.get(
   "/:record_id",
-  verifyJWT,
-  verifyRoles(roles.Admin),
   getSingleRecord
 );
 

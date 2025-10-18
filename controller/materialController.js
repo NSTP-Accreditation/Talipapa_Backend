@@ -14,10 +14,17 @@ const getMaterials = async (request, response) => {
 };
 
 const createMaterial = async (request, response) => {
-  const { name, pointsPerKg } = request.body;
+  const { name, description, pointsPerKg } = request.body;
 
   if (!name) {
     return response.status(400).json({ message: "Name is required!" });
+  }
+
+  if (!request.file) {
+    return response.status(400).json({
+      success: false,
+      message: "Product image is required",
+    });
   }
 
   try {
@@ -40,7 +47,14 @@ const createMaterial = async (request, response) => {
 
     const newMaterialData = {
       name,
-      // image: req.file ? req.file.filename : ''
+      description,
+      image: {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      },
     };
 
     if (parsedPoints) {
@@ -58,7 +72,6 @@ const createMaterial = async (request, response) => {
       targetType: LOGCONSTANTS.targetTypes.MATERIAL,
       targetId: newMaterial._id.toString(),
       targetName: name,
-      details: { category },
     });
 
     response.status(201).json({ message: `${newMaterial.name} Added!` });
@@ -111,7 +124,6 @@ const updateMaterial = async (request, response) => {
       targetType: LOGCONSTANTS.targetTypes.MATERIAL,
       targetId: updatedMaterial._id.toString(),
       targetName: name,
-      details: { category },
     });
 
     return response.json(updatedMaterial);
@@ -139,9 +151,9 @@ const deleteMaterial = async (request, response) => {
       performedBy: request.userId,
       targetType: LOGCONSTANTS.targetTypes.MATERIAL,
       targetName: foundProduct.name,
-      details: { category },
     });
 
+    await Material.findOneAndDelete(id);
     response.json({ message: "Material Deleted Successfully! " });
   } catch (error) {
     response.status(500).json({ error: error.message });

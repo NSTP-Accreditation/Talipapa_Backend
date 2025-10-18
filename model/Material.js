@@ -6,12 +6,19 @@ const materialSchema = new Schema({
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+  },
   pointsPerKg: {
     type: Number,
     default: 1,
   },
-  image: {
-    type: String,
+  image:  {
+    url: String,
+    key: String,
+    originalName: String,
+    size: Number,
+    mimetype: String
   },
   createdAt: {
     type: Date,
