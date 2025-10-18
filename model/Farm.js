@@ -36,7 +36,13 @@ const farmSchema = new Schema({
     type: String,
     required: true
   },
-  image: String
+  image: {
+    url: String,
+    key: String,
+    originalName: String,
+    size: Number,
+    mimetype: String,
+  },
 });
 
 module.exports = mongoose.model('Farm', farmSchema);

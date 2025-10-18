@@ -34,6 +34,13 @@ const addFarm = async (req, res) => {
   const { location, name, size, age, farmType, address, description } =
     req.body;
 
+  // if (!request.file) {
+  //   return response.status(400).json({
+  //     success: false,
+  //     message: "Product image is required",
+  //   });
+  // }
+
   if (
     !location ||
     !name ||
@@ -57,7 +64,13 @@ const addFarm = async (req, res) => {
       farmType,
       address,
       description,
-      // image: req.file ? req.file.filename : ''
+      image: {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      },
     });
 
     await createLog({

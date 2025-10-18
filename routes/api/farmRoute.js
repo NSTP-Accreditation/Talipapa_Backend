@@ -4,10 +4,10 @@ const { getFarms, addFarm } = require('../../controller/farmController');
 const verifyJWT = require('../../middlewares/verifyJWT');
 const verifyRoles = require('../../middlewares/verifyRoles');
 const ROLES = require('../../config/roles');
-// const upload = require('../../middlewares/fileUpload');
+const upload = require('../../middlewares/fileUpload');
 
 router.route('/')
   .get(getFarms)
-  .post(verifyJWT, verifyRoles(ROLES.Admin), addFarm)
+  .post(verifyJWT, verifyRoles(ROLES.Admin), upload.single("image"), addFarm)
 
 module.exports = router;
