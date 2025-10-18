@@ -15,6 +15,13 @@ const getAllOfficials = async (request, response) => {
 const postOfficials = async (request, response) => {
   const { name, position } = request.body;
 
+  if (!request.file) {
+    return response.status(400).json({
+      success: false,
+      message: "Product image is required",
+    });
+  }
+    
   try {
     if (!name || !position)
       return response
@@ -30,6 +37,13 @@ const postOfficials = async (request, response) => {
     const officialsObject = await Officials.create({
       name: name,
       position: position,
+      image: {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      },
     });
 
     await createLog({

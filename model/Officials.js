@@ -10,6 +10,13 @@ const OfficialsSchema = new Schema({
     type: String,
     required: true,
   },
+  image:  {
+    url: String,
+    key: String,
+    originalName: String,
+    size: Number,
+    mimetype: String
+  },
   createdAt: {
     type: Date,
     default: Date.now,

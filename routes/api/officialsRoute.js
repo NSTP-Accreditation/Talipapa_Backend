@@ -10,11 +10,12 @@ const {
 const router = express.Router();
 const verifyJWT = require('../../middlewares/verifyJWT')
 const verifyRoles = require('../../middlewares/verifyRoles')
+const upload = require('../../middlewares/fileUpload')
 const roles = require('../../config/roles');
 
 router.route("")
 .get(getAllOfficials)
-.post(verifyJWT, verifyRoles(roles.Admin), postOfficials);
+.post(verifyJWT, verifyRoles(roles.Admin), upload.single('image'), postOfficials);
 
 router.put("/bulk-update", verifyJWT, verifyRoles(roles.Admin), bulkUpdate);
 
