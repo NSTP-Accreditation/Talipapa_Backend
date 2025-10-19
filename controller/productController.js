@@ -1,6 +1,7 @@
 const Product = require("../model/Products");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
+const { deleteFromS3 } = require("../utils/deleteFromS3");
 
 // TODO: ADD IMAGE AND UPDATE PRODUCT
 const getProducts = async (request, response) => {
@@ -127,15 +128,25 @@ const deleteProduct = async (request, response) => {
         .status(404)
         .json({ message: `Product not found with ID ${id}` });
 
-    await Product.deleteOne({ _id: id });
-
+    if (foundProduct.image && foundProduct.image.key) {
+      try {
+        await deleteFromS3(foundProduct.image.key);
+      } catch (s3Error) {
+        console.error("Failed to delete image from S3:", s3Error);
+      }
+    }
+        
     await createLog({
       action: LOGCONSTANTS.actions.products.DELETE_PRODUCT,
       category: LOGCONSTANTS.categories.INVENTORY,
       title: `Product "${foundProduct.name}" was deleted`,
       description: `Product "${foundProduct.name}" was deleted`,
+      performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.PRODUCT,
+      targetName: foundProduct.name,
     });
-
+    
+    await Product.deleteOne({ _id: id });
     response.json({ message: "Product Deleted Successfully" });
   } catch (error) {
     response.status(500).json({ error: error.message });

@@ -71,6 +71,7 @@ const LOGCONSTANTS = {
     FARM: "FARM",
     GUIDELINE: "GUIDELINE",
     MATERIAL: "MATERIAL",
+    PRODUCT: "PRODUCT",
     NEWS: "NEWS",
     RECORD: "RECORD",
   }

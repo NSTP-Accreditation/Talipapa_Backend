@@ -2,6 +2,7 @@ const { response } = require("express");
 const Material = require("../model/Material");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
+const { deleteFromS3 } = require("../utils/deleteFromS3");
 
 const getMaterials = async (request, response) => {
   try {
@@ -23,7 +24,7 @@ const createMaterial = async (request, response) => {
   if (!request.file) {
     return response.status(400).json({
       success: false,
-      message: "Product image is required",
+      message: "Material image is required",
     });
   }
 
@@ -32,7 +33,7 @@ const createMaterial = async (request, response) => {
     if (duplicate) {
       return response
         .status(409)
-        .json({ message: `Product ${name} already exists!` });
+        .json({ message: `Material ${name} already exists!` });
     }
 
     let parsedPoints;
@@ -139,18 +140,27 @@ const deleteMaterial = async (request, response) => {
     return response.status(400).json({ message: "Material ID is required!" });
 
   try {
-    const foundProduct = await Material.findById(id);
-    if (!foundProduct)
+    const foundMaterial = await Material.findById(id);
+    if (!foundMaterial)
       return response.status(404).json({ error: "Material not found" });
+
+    if (foundMaterial.image && foundMaterial.image.key) {
+      try {
+        await deleteFromS3(foundMaterial.image.key);
+      } catch (s3Error) {
+        console.error("Failed to delete image from S3:", s3Error);
+        
+      }
+    }
 
     await createLog({
       action: LOGCONSTANTS.actions.materials.DELETE_MATERIAL,
       category: LOGCONSTANTS.categories.INVENTORY,
       title: "Material Deleted",
-      description: `Material "${foundProduct.name}" was deleted`,
+      description: `Material "${foundMaterial.name}" was deleted`,
       performedBy: request.userId,
       targetType: LOGCONSTANTS.targetTypes.MATERIAL,
-      targetName: foundProduct.name,
+      targetName: foundMaterial.name,
     });
 
     await Material.findOneAndDelete(id);
