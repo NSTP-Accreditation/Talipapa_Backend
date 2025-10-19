@@ -1,6 +1,7 @@
 const Officials = require("../model/Officials");
 const { LOGCONSTANTS } = require("../config/constants");
 const { createLog } = require("../utils/logHelper");
+const {deleteFromS3} = require('../utils/deleteFromS3'); 
 
 const getAllOfficials = async (request, response) => {
   try {
@@ -62,39 +63,72 @@ const postOfficials = async (request, response) => {
 
 const updateOfficials = async (request, response) => {
   const { id } = request.params;
-
-  if (!id) return response.status(400).json({ message: "The ID is required!" });
   const { name, position } = request.body;
 
-  try {
-    if (!name || !position)
-      return response.status(400).json({ message: "All fields are required!" });
+  if (!id) {
+    return response.status(400).json({ message: "The ID is required!" });
+  }
 
-    const oldOfficial = await Officials.findById({ _id: id });
-    if (!oldOfficial)
+  try {
+    const oldOfficial = await Officials.findById(id);
+    if (!oldOfficial) {
       return response
         .status(404)
         .json({ message: `Official not found with ID: ${id}` });
+    }
 
-    const updatedObject = await Officials.findByIdAndUpdate(
-      { _id: id },
-      { name: name, position: position, updatedAt: new Date() },
+    // Prepare the update object dynamically
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (position) updateFields.position = position;
+
+    // Handle optional image update
+    if (request.file) {
+      updateFields.image = {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      };
+
+      if (oldOfficial.image?.key) {
+        try {
+          await deleteFromS3(oldOfficial.image.key);
+          console.log(`Old image deleted from S3: ${oldOfficial.image.key}`);
+        } catch (s3Error) {
+          console.warn(
+            `⚠️ Failed to delete old image from S3 (key: ${oldOfficial.image.key}):`,
+            s3Error.message
+          );
+        }
+      }
+    }
+
+    updateFields.updatedAt = new Date();
+
+    const updatedOfficial = await Officials.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
       { new: true }
     );
 
     await createLog({
       action: LOGCONSTANTS.actions.officials.UPDATE_OFFICIAL,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
-      title: "Officials Updated",
-      description: `Official "${name}" was updated`,
+      title: "Official Updated",
+      description: `Official "${updatedOfficial.name}" was updated${
+        request.file ? " with a new image" : ""
+      }.`,
       performedBy: request.userId,
     });
 
-    response.json(updatedObject);
+    return response.json(updatedOfficial);
   } catch (error) {
-    response.status(500).json({ error: error.message });
+    return response.status(500).json({ error: error.message });
   }
 };
+
 
 const bulkUpdate = async (req, res) => {
   try {
@@ -131,8 +165,15 @@ const deleteOfficials = async (request, response) => {
         .status(404)
         .json({ message: `Officials not found with ID: ${id}` });
 
-    await Officials.deleteOne(foundObject);
+    if (foundObject.image && foundObject.image.key) {
+      try {
+        await deleteFromS3(foundObject.image.key);
+      } catch (s3Error) {
+        console.error("Failed to delete image from S3:", s3Error);
+      }
+    }
 
+    await Officials.deleteOne(foundObject);
     await createLog({
       action: LOGCONSTANTS.actions.officials.DELETE_OFFICIAL,
       category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
@@ -140,7 +181,6 @@ const deleteOfficials = async (request, response) => {
       description: `Official "${foundObject.name}" was deleted`,
       performedBy: request.userId,
     });
-
     return response.json({ message: "Officials Deleted Successfully" });
   } catch (error) {
     response.status(500).json({ error: error.message });

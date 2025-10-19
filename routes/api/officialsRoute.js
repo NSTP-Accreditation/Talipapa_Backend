@@ -20,7 +20,7 @@ router.route("")
 router.put("/bulk-update", verifyJWT, verifyRoles(roles.Admin), bulkUpdate);
 
 router.route("/:id")
-.put(verifyJWT, verifyRoles(roles.Admin), updateOfficials)
+.patch(verifyJWT, verifyRoles(roles.Admin), upload.single("image"), updateOfficials)
 .delete(verifyJWT, verifyRoles(roles.Admin), deleteOfficials);
 
 module.exports = router;
