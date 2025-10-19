@@ -1,5 +1,6 @@
 const { LOGCONSTANTS } = require("../config/constants");
 const Farm = require("../model/Farm");
+const { createLog } = require("../utils/logHelper");
 
 const getFarms = async (req, res) => {
   try {
@@ -34,12 +35,12 @@ const addFarm = async (req, res) => {
   const { location, name, size, age, farmType, address, description } =
     req.body;
 
-  // if (!request.file) {
-  //   return response.status(400).json({
-  //     success: false,
-  //     message: "Product image is required",
-  //   });
-  // }
+  if (!req.file) {
+    return response.status(400).json({
+      success: false,
+      message: "Product image is required",
+    });
+  }
 
   if (
     !location ||
@@ -54,7 +55,7 @@ const addFarm = async (req, res) => {
   const parsedLocation = JSON.parse(req.body.location);
   try {
     const newFarm = await Farm.create({
-      location: {
+      location: { 
         lat: Number(parsedLocation.lat),
         lng: Number(parsedLocation.lng),
       },
@@ -65,11 +66,11 @@ const addFarm = async (req, res) => {
       address,
       description,
       image: {
-        url: request.file.location,
-        key: request.file.key,
-        originalName: request.file.originalname,
-        size: request.file.size,
-        mimetype: request.file.mimetype,
+        url: req.file.location,
+        key: req.file.key,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
       },
     });
 
