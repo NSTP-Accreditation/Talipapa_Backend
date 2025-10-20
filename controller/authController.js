@@ -23,6 +23,11 @@ const handleCreateAccount = async (request, response) => {
     return response.status(400).json({ message: "Invalid Contact Number!" });
   }
 
+  const rolesKeys = Object.keys(roles);
+  if(!Array.isArray(rolesKeys) || rolesKeys.length === 0) {
+    return response.status(400).json({ message: "At least one role is required!"});
+  }
+
   try {
     const foundUser = await User.findOne({
       $or: [{ username }, { email }],

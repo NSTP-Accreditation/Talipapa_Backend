@@ -19,10 +19,7 @@ const userSchema = new Schema({
     // required: true
   },
   roles: {
-    Admin: {
-      type: Number,
-      default: 92781
-    },
+    Admin: Number,
     Editor: Number
   },
   password: {
