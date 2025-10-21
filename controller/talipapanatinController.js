@@ -54,7 +54,7 @@ const postProgram = async (req, res) => {
 
 const editProgram = async (req, res) => {
     const { id } = req.params;
-    const { title, category } = req.body;
+    const { title, category, items } = req.body; // Add items here
 
     try {
         if (!id) {
@@ -70,7 +70,7 @@ const editProgram = async (req, res) => {
         const updateData = {};
         if (title) updateData.title = title;
         if (category) updateData.category = category;
-
+        if (items) updateData.items = items;
         const updatedProgram = await Talipapanatin.findByIdAndUpdate(
             id,
             updateData,
@@ -87,7 +87,11 @@ const editProgram = async (req, res) => {
             targetType: LOGCONSTANTS.targetTypes.TALIPAPANATIN,
             targetId: updatedProgram._id.toString(),
             targetName: updatedProgram.title,
-            details: updateData,
+            details: { 
+                title: title ? 'Updated' : 'Unchanged',
+                category: category ? 'Updated' : 'Unchanged',
+                itemsCount: updatedProgram.items.length
+            },
         });
 
         return res.status(200).json({
@@ -96,7 +100,6 @@ const editProgram = async (req, res) => {
         });
     } catch (error) {
         console.error("Error updating program:", error);
-
         return res.status(500).json({ error: error.message });
     }
 };

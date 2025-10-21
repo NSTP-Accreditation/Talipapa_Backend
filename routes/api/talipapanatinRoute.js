@@ -16,9 +16,8 @@ const {
 
 router
     .route("/")
-    .all(verifyJWT, verifyRoles(roles.Admin))
     .get(getAllProgram)
-    .post(postProgram);
+    .post(verifyJWT, verifyRoles(roles.Admin), postProgram);
 
 router
     .route("/:id")
