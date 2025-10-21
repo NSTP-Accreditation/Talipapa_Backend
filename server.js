@@ -53,6 +53,8 @@ app.use("/skills", require("./routes/api/skillsRoute"));
 
 app.use("/staff", require("./routes/api/staffRoute"));
 
+app.use("/talipapanatin", require("./routes/api/talipapanatinRoute"));
+
 
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
