@@ -10,6 +10,7 @@ const OfficialsSchema = new Schema({
     type: String,
     required: true,
   },
+  biography: String,
   image:  {
     url: String,
     key: String,

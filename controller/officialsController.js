@@ -14,7 +14,7 @@ const getAllOfficials = async (request, response) => {
 };
 
 const postOfficials = async (request, response) => {
-  const { name, position } = request.body;
+  const { name, position, biography } = request.body;
 
   if (!request.file) {
     return response.status(400).json({
@@ -38,6 +38,7 @@ const postOfficials = async (request, response) => {
     const officialsObject = await Officials.create({
       name: name,
       position: position,
+      biography: biography,
       image: {
         url: request.file.location,
         key: request.file.key,
@@ -63,7 +64,7 @@ const postOfficials = async (request, response) => {
 
 const updateOfficials = async (request, response) => {
   const { id } = request.params;
-  const { name, position } = request.body;
+  const { name, position, biography } = request.body;
 
   if (!id) {
     return response.status(400).json({ message: "The ID is required!" });
@@ -81,6 +82,7 @@ const updateOfficials = async (request, response) => {
     const updateFields = {};
     if (name) updateFields.name = name;
     if (position) updateFields.position = position;
+    if (biography) updateFields.biography = biography;
 
     // Handle optional image update
     if (request.file) {
