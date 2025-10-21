@@ -42,6 +42,7 @@ const getAllLogsPaginated = async (request, response) => {
       userId,
       startDate,
       endDate,
+      sort = 'desc', // default sort direction
       page = 1,
       limit = 20,
     } = request.query;
@@ -60,21 +61,26 @@ const getAllLogsPaginated = async (request, response) => {
       if (endDate) filter.created_at.$lte = new Date(endDate);
     }
 
-    // Calculate pagination
+    // Pagination setup
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    // Get total count for pagination info
+    // Sorting setup
+    const sortDirection = sort.toLowerCase() === 'asc' ? 1 : -1;
+
+    // Count for pagination
     const totalLogs = await Logs.countDocuments(filter);
     const totalPages = Math.ceil(totalLogs / limitNum);
 
+    // Query logs with sorting + pagination
     const allLogs = await Logs.find(filter)
-      .sort({ created_at: -1 })
+      .sort({ created_at: sortDirection }) // ✅ dynamic sorting
       .populate("performedBy", "username roles")
       .skip(skip)
       .limit(limitNum);
 
+    // Transform roles
     const transformedLogs = allLogs.map(log => {
       if (log.performedBy && log.performedBy.roles) {
         const logObj = log.toObject();
@@ -91,9 +97,10 @@ const getAllLogsPaginated = async (request, response) => {
       count: transformedLogs.length,
       total: totalLogs,
       currentPage: pageNum,
-      totalPages: totalPages,
+      totalPages,
       hasNextPage: pageNum < totalPages,
       hasPrevPage: pageNum > 1,
+      sort: sort.toUpperCase(),
       data: transformedLogs,
     });
   } catch (error) {
@@ -103,5 +110,6 @@ const getAllLogsPaginated = async (request, response) => {
     });
   }
 };
+
 
 module.exports = { getAllLogs, getAllLogsPaginated };

@@ -69,8 +69,6 @@ const updateRecord = async (req, res) => {
     if (!record_id || !lastName)
       return res.status(400).json({ error: "All Fields are required!" });
 
-    // TODO: VALIDATE IF THE POINTS IS A NUMBER
-
     const updatedRecord = await Record.findOneAndUpdate(
       {
         _id: { $regex: `^${record_id}$`, $options: "i" },
