@@ -75,7 +75,10 @@ const createMaterial = async (request, response) => {
       targetName: name,
     });
 
-    response.status(201).json({ message: `${newMaterial.name} Added!` });
+    response.status(201).json({ 
+      message: `${newMaterial.name} Added!`,
+      material: newMaterial
+    });
   } catch (error) {
     console.error("Error creating material:", error);
     response.status(500).json({ error: error.message });
@@ -85,33 +88,69 @@ const createMaterial = async (request, response) => {
 const updateMaterial = async (request, response) => {
   const { id } = request.params;
 
-  if (!id)
+  if (!id) {
     return response.status(400).json({ message: "Material ID is required!" });
+  }
 
-  const { name, pointsPerKg } = request.body;
+  const { name, description, pointsPerKg } = request.body;
 
-  if (!name && !pointsPerKg)
+  if (!name && !pointsPerKg && !description && !request.file) {
     return response
       .status(400)
-      .json({ error: "Atleast one field is required!a" });
-
-  const updateFields = {
-    updatedAt: new Date(),
-  };
-  if (name) updateFields.name = name;
-  if (pointsPerKg) updateFields.pointsPerKg = pointsPerKg;
-
-  if (pointsPerKg <= 0)
-    return response
-      .status(400)
-      .json({ message: "Points Per Kg must be a number greater than 0" });
+      .json({ error: "At least one field is required!" });
+  }
 
   try {
-    const updatedMaterial = await Material.findOneAndUpdate(
-      { _id: id },
+    const material = await Material.findById(id);
+
+    if (!material) {
+      return response.status(404).json({ error: "Material not found" });
+    }
+
+    const updateFields = {
+      updatedAt: new Date(),
+    };
+
+    if (name) updateFields.name = name;
+    if (description) updateFields.description = description;
+    
+    if (pointsPerKg !== undefined && pointsPerKg !== "") {
+      const parsedPoints = Number(pointsPerKg);
+      if (isNaN(parsedPoints) || parsedPoints <= 0) {
+        return response
+          .status(400)
+          .json({ message: "Points Per Kg must be a number greater than 0" });
+      }
+      updateFields.pointsPerKg = parsedPoints;
+    }
+
+    // Handle image update if new image provided
+    if (request.file) {
+      // Delete old image from S3 if it exists
+      if (material.image && material.image.key) {
+        try {
+          await deleteFromS3(material.image.key);
+        } catch (s3Error) {
+          console.error("Failed to delete old image from S3:", s3Error);
+        }
+      }
+
+      // Add new image
+      updateFields.image = {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      };
+    }
+
+    const updatedMaterial = await Material.findByIdAndUpdate(
+      id,
       { $set: updateFields },
       { new: true }
     ).lean();
+
     if (!updatedMaterial) {
       return response.status(404).json({ error: "Material not found" });
     }
@@ -120,14 +159,23 @@ const updateMaterial = async (request, response) => {
       action: LOGCONSTANTS.actions.materials.UPDATE_MATERIAL,
       category: LOGCONSTANTS.categories.INVENTORY,
       title: "Material Updated",
-      description: `Material "${name}" was updated`,
+      description: `Material "${updatedMaterial.name}" was updated${request.file ? ' with new image' : ''}`,
       performedBy: request.userId,
       targetType: LOGCONSTANTS.targetTypes.MATERIAL,
       targetId: updatedMaterial._id.toString(),
-      targetName: name,
+      targetName: updatedMaterial.name,
+      details: {
+        name: updatedMaterial.name,
+        description: updatedMaterial.description,
+        pointsPerKg: updatedMaterial.pointsPerKg,
+        imageUpdated: !!request.file
+      }
     });
 
-    return response.json(updatedMaterial);
+    return response.json({ 
+      message: "Material updated successfully!",
+      material: updatedMaterial
+    });
   } catch (error) {
     response.status(500).json({ error: error.message });
   }
@@ -136,35 +184,38 @@ const updateMaterial = async (request, response) => {
 const deleteMaterial = async (request, response) => {
   const { id } = request.params;
 
-  if (!id)
+  if (!id) {
     return response.status(400).json({ message: "Material ID is required!" });
+  }
 
   try {
     const foundMaterial = await Material.findById(id);
-    if (!foundMaterial)
-      return response.status(404).json({ error: "Material not found" });
+    if (!foundMaterial) {
+      return response
+        .status(404)
+        .json({ message: `Material not found with ID ${id}` });
+    }
 
     if (foundMaterial.image && foundMaterial.image.key) {
       try {
         await deleteFromS3(foundMaterial.image.key);
       } catch (s3Error) {
         console.error("Failed to delete image from S3:", s3Error);
-        
       }
     }
 
     await createLog({
       action: LOGCONSTANTS.actions.materials.DELETE_MATERIAL,
       category: LOGCONSTANTS.categories.INVENTORY,
-      title: "Material Deleted",
+      title: `Material "${foundMaterial.name}" was deleted`,
       description: `Material "${foundMaterial.name}" was deleted`,
       performedBy: request.userId,
       targetType: LOGCONSTANTS.targetTypes.MATERIAL,
       targetName: foundMaterial.name,
     });
 
-    await Material.findOneAndDelete(id);
-    response.json({ message: "Material Deleted Successfully! " });
+    await Material.deleteOne({ _id: id });
+    response.json({ message: "Material Deleted Successfully" });
   } catch (error) {
     response.status(500).json({ error: error.message });
   }

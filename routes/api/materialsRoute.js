@@ -23,7 +23,8 @@ router
 router
   .route("/:id")
   .all(verifyJWT, verifyRoles(roles.Admin))
-  .patch(updateMaterial)
+  .put(upload.single('image'), updateMaterial)
+  .patch(upload.single('image'), updateMaterial)
   .delete(deleteMaterial);
 
 
