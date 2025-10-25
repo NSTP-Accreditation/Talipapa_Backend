@@ -19,8 +19,8 @@ const userSchema = new Schema({
     // required: true
   },
   roles: {
+    SuperAdmin: Number,
     Admin: Number,
-    Editor: Number
   },
   password: {
     type: String,
