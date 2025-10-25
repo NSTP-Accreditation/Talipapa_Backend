@@ -55,6 +55,8 @@ app.use("/staff", require("./routes/api/staffRoute"));
 
 app.use("/talipapanatin", require("./routes/api/talipapanatinRoute"));
 
+app.use("/farm-inventory", require("./routes/api/farmInventoryRoute"));
+
 
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
