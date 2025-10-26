@@ -13,7 +13,7 @@ const getRecords = async (req, res) => {
 };
 
 const createRecord = async (req, res) => {
-  const { firstName, lastName, middleName, age, address, contactNumber } =
+  const { firstName, lastName, middleName, age, address, contact_number } =
     req.body;
 
   if (!firstName || !lastName || !middleName)
@@ -28,6 +28,7 @@ const createRecord = async (req, res) => {
     return res.status(409).json({
       error: `Record ${firstName} ${middleName} ${lastName} Already Exists`,
     });
+
   try {
     const newRecord = await Record.create({
       firstName,
@@ -35,7 +36,7 @@ const createRecord = async (req, res) => {
       middleName,
       age,
       address,
-      contactNumber,
+      contact_number,
     });
 
     await createLog({
@@ -47,14 +48,14 @@ const createRecord = async (req, res) => {
       targetType: LOGCONSTANTS.targetTypes.RECORD,
       targetId: newRecord._id,
       targetName: `${firstName} ${lastName}`,
-      details: { age, address, contactNumber },
+      details: { age, address, contact_number },
     });
 
     res.status(201).json({
       message: `${newRecord._id}: ${newRecord.lastName} New Record Created!`,
       record_id: newRecord._id,
       lastName,
-      createdAt: newRecord.createdAt
+      createdAt: newRecord.createdAt,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -63,21 +64,45 @@ const createRecord = async (req, res) => {
 
 const updateRecord = async (req, res) => {
   const { record_id } = req.params;
-  const { lastName, points, materials } = req.body;
+  const {
+    firstName,
+    lastName,
+    middleName,
+    age,
+    contact_number,
+    address,
+    points,
+    materials,
+  } = req.body;
 
   try {
     if (!record_id || !lastName)
-      return res.status(400).json({ error: "All Fields are required!" });
+      return res.status(400).json({ error: "Record ID and Last Name are required!" });
 
+    // Build dynamic update object
+    const updateFields = {
+      updatedAt: new Date(),
+    };
+
+    if (firstName !== undefined) updateFields.firstName = firstName;
+    if (middleName !== undefined) updateFields.middleName = middleName;
+    if (age !== undefined) updateFields.age = age;
+    if (contact_number !== undefined) updateFields.contact_number = contact_number;
+    if (address !== undefined) updateFields.address = address;
+    if (materials !== undefined) updateFields.materials = materials;
+
+    // Handle points increment/decrement safely
+    const updateQuery = { $set: updateFields };
+    if (typeof points === "number" && points !== 0) {
+      updateQuery.$inc = { points };
+    }
+
+    // Find and update record
     const updatedRecord = await Record.findOneAndUpdate(
       {
         _id: { $regex: `^${record_id}$`, $options: "i" },
-        lastName: { $regex: `^${lastName}$`, $options: "i" },
       },
-      {
-        updatedAt: new Date(),
-        $inc: { points },
-      },
+      updateQuery,
       { new: true }
     ).lean();
 
@@ -86,44 +111,50 @@ const updateRecord = async (req, res) => {
         .status(404)
         .json({ error: `Record ${record_id}: ${lastName} Not Found!` });
 
+    // Logging
     const logPayload = {
       action: LOGCONSTANTS.actions.records.UPDATE_RECORD,
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
       title:
-        points > 0 ? "Points Added to Record" : "Points Deducted from Record",
+        points > 0 ? "Points Added to Record" : points < 0 ? "Points Deducted from Record" : "Record Updated",
       description:
         points > 0
           ? `Added ${points} points to ${record_id} with ${materials}`
-          : `Deducted ${points} points from ${record_id})`,
+          : points < 0
+          ? `Deducted ${Math.abs(points)} points from ${record_id}`
+          : `Updated record ${record_id}`,
       performedBy: req.userId,
       targetType: LOGCONSTANTS.targetTypes.RECORD,
       targetId: updatedRecord._id,
       targetName: `${updatedRecord.firstName} ${updatedRecord.lastName}`,
       details: {
-        // pointsAdded: points,
-        previousPoints: updatedRecord.points - points,
+        previousPoints: typeof points === "number" ? updatedRecord.points - points : updatedRecord.points,
         newPoints: updatedRecord.points,
-        materials: materials,
+        materials,
+        updatedFields: Object.keys(updateFields),
       },
     };
 
     if (points > 0) {
       logPayload.details.pointsAdded = points;
-    } else {
+    } else if (points < 0) {
       logPayload.details.pointsDeducted = points;
     }
+
     await createLog(logPayload);
 
     res.json({
       record_id: updatedRecord._id,
       lastName: updatedRecord.lastName,
-      earnedPoints: points,
+      updatedFields: updateFields,
+      earnedPoints: points || 0,
       currentPoints: updatedRecord.points,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const getSingleRecord = async (req, res) => {
   const { record_id } = req.params;
@@ -169,15 +200,6 @@ const searchRecords = async (req, res) => {
       .limit(50)
       .lean();
 
-    // if (!searchResults || searchResults.length === 0)
-    //   return res
-    //     .status(404)
-    //     .json({
-    //       message: "No records found matching your search.",
-    //       count: 0,
-    //       results: []
-    //     });
-
     res.json({
       message: "Records found",
       count: searchResults.length,
@@ -188,10 +210,26 @@ const searchRecords = async (req, res) => {
   }
 };
 
+const deleteRecord = async (req, res) => {
+  const { record_id } = req.params;
+
+  if(!record_id) return res.status(400).json({ message: "Record ID is required!"});
+  try {
+    const deletedRecord = await Record.findByIdAndDelete(record_id);
+    
+    if(!deletedRecord) return res.status(404).json({ message: "Record not found with ID: " + record_id});
+    
+    res.json({ message: `Record ${record_id} deleted successfully!`});
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
+
 module.exports = {
   getRecords,
   createRecord,
   updateRecord,
   getSingleRecord,
   searchRecords,
+  deleteRecord
 };

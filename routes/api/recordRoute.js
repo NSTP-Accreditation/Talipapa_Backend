@@ -6,6 +6,7 @@ const {
   updateRecord,
   getSingleRecord,
   searchRecords,
+  deleteRecord,
 } = require("../../controller/recordController");
 const verifyJWT = require("../../middlewares/verifyJWT");
 const verifyRoles = require("../../middlewares/verifyRoles");
@@ -24,15 +25,9 @@ router
   .get(getRecords)
   .post(createRecord);
 
-router.patch(
-  "/:record_id",
-  verifyJWT,
-  verifyRoles(roles.Admin),
-  updateRecord
-);
-router.get(
-  "/:record_id",
-  getSingleRecord
-);
+router.route("/:record_id")
+  .get(getSingleRecord)
+  .patch(verifyJWT, verifyRoles(roles.Admin), updateRecord)
+  .delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteRecord)
 
 module.exports = router;
