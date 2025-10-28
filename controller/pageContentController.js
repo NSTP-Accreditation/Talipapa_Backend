@@ -21,13 +21,7 @@ const getPageContent = async (request, response) => {
 };
 
 const postPageContents = async (request, response) => {
-  const {
-    mission,
-    vision,
-    barangayName,
-    barangayHistory,
-    barangayDescription,
-  } = request.body;
+  const { mission, vision, barangayName, barangayHistory, barangayDescription } = request.body;
 
   try {
     const allContent = await PageContent.find({});
@@ -82,7 +76,6 @@ const postPageContents = async (request, response) => {
 
 const updatePageContents = async (request, response) => {
   const { id } = request.params;
-
   if (!id) return response.status(400).json({ message: "The ID is required!" });
 
   try {
@@ -93,6 +86,13 @@ const updatePageContents = async (request, response) => {
       barangayHistory,
       barangayDescription,
     } = request.body;
+    if (!mission || !vision || !barangayName || !barangayHistory || !barangayDescription)
+      return response
+        .status(400)
+        .json({
+          message:
+            "Mission, Vision, Barangay Name, Barangay History, Barangay Description are required!",
+        });
 
     const oldContent = await PageContent.findById({ _id: id });
     if (!oldContent)
