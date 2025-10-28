@@ -66,7 +66,10 @@ const createProduct = async (request, response) => {
 
     response
       .status(201)
-      .json({ message: `Product ${newProduct.name} Created!` });
+      .json({ 
+        message: `Product ${newProduct.name} Created!`,
+        product: newProduct
+      });
   } catch (error) {
     response.status(500).json({ error: error.message });
   }
@@ -77,21 +80,62 @@ const updateProduct = async (request, response) => {
   const { name, description, category, subCategory, stocks, requiredPoints } =
     request.body;
 
-  if (!name || !description || !category || !subCategory || !requiredPoints)
+  if (!id) {
+    return response.status(400).json({ message: "Product ID is required!" });
+  }
+
+  if (!name || !description || !category || !subCategory || !requiredPoints) {
     return response.status(400).json({ error: "All Fields are required!" });
+  }
+
+  if (isNaN(stocks) || isNaN(requiredPoints) || stocks < 0 || requiredPoints <= 0) {
+    return response.status(400).json({ error: "Stocks and Required Points should be valid numbers" });
+  }
 
   try {
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return response
+        .status(404)
+        .json({ message: `Product not found with ID: ${id}` });
+    }
+
+    // Prepare update data
+    const updateData = {
+      name,
+      description,
+      category,
+      subCategory,
+      stocks: Number(stocks),
+      requiredPoints: Number(requiredPoints),
+      updatedAt: new Date(),
+    };
+
+    // Handle image update if new image provided
+    if (request.file) {
+      // Delete old image from S3 if it exists
+      if (product.image && product.image.key) {
+        try {
+          await deleteFromS3(product.image.key);
+        } catch (s3Error) {
+          console.error("Failed to delete old image from S3:", s3Error);
+        }
+      }
+
+      // Add new image
+      updateData.image = {
+        url: request.file.location,
+        key: request.file.key,
+        originalName: request.file.originalname,
+        size: request.file.size,
+        mimetype: request.file.mimetype,
+      };
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      {
-        name,
-        description,
-        category,
-        subCategory,
-        stocks,
-        requiredPoints,
-        updatedAt: new Date(),
-      },
+      updateData,
       { new: true }
     ).lean();
 
@@ -106,11 +150,24 @@ const updateProduct = async (request, response) => {
       action: LOGCONSTANTS.actions.products.UPDATE_PRODUCT,
       category: LOGCONSTANTS.categories.INVENTORY,
       title: "Product Updated",
-      description: `Product "${name}" was updated`,
+      description: `Product "${name}" was updated${request.file ? ' with new image' : ''}`,
       performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.PRODUCT,
+      targetId: updatedProduct._id.toString(),
+      targetName: name,
+      details: {
+        category,
+        subCategory,
+        stocks: Number(stocks),
+        requiredPoints: Number(requiredPoints),
+        imageUpdated: !!request.file
+      }
     });
 
-    response.json(updatedProduct);
+    response.json({ 
+      message: "Product updated successfully!",
+      product: updatedProduct
+    });
   } catch (error) {
     response.status(500).json({ error: error.message });
   }
