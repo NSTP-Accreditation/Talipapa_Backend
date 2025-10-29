@@ -3,7 +3,6 @@ const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
 const { deleteFromS3 } = require("../utils/deleteFromS3");
 
-// TODO: ADD IMAGE AND UPDATE PRODUCT
 const getProducts = async (request, response) => {
   try {
     const products = await Product.find();
@@ -112,9 +111,7 @@ const updateProduct = async (request, response) => {
       updatedAt: new Date(),
     };
 
-    // Handle image update if new image provided
     if (request.file) {
-      // Delete old image from S3 if it exists
       if (product.image && product.image.key) {
         try {
           await deleteFromS3(product.image.key);

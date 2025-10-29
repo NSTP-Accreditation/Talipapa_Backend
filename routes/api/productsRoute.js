@@ -13,6 +13,6 @@ router.route('/')
 
 router.route("/:id")
   .all(verifyJWT, verifyRoles(roles.Admin))
-  .put(upload.single('image'), updateProduct)
+  .patch(upload.single('image'), updateProduct)
   .delete(deleteProduct)
 module.exports = router;

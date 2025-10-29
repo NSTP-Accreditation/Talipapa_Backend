@@ -200,11 +200,7 @@ const searchRecords = async (req, res) => {
       .limit(50)
       .lean();
 
-    res.json({
-      message: "Records found",
-      count: searchResults.length,
-      results: searchResults,
-    });
+    res.json(searchResults);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
