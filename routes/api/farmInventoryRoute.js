@@ -18,32 +18,7 @@ const {
   getFarmInventoryBySubCategory,
   getLowStockFarmInventory,
 } = require("../../controller/farmInventoryController");
-
-// Configure multer for S3 upload
-const upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: process.env.AWS_BUCKET_NAME,
-    acl: "public-read",
-    metadata: function (req, file, cb) {
-      cb(null, { fieldName: file.fieldname });
-    },
-    key: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, `farm-inventory/${uniqueSuffix}-${file.originalname}`);
-    },
-  }),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed!"), false);
-    }
-  },
-});
+const upload = require('../../middlewares/fileUpload');
 
 // Public routes (no authentication required for viewing)
 router.get("/", getAllFarmInventory);
@@ -61,7 +36,7 @@ router.post(
   createFarmInventory
 );
 
-router.put(
+router.patch(
   "/:id",
   verifyJWT,
   verifyRoles(roles.SuperAdmin),
