@@ -94,7 +94,7 @@ const updateMaterial = async (request, response) => {
 
   const { name, description, pointsPerKg } = request.body;
 
-  if (!name && !pointsPerKg && !description && !request.file) {
+  if (!name && !pointsPerKg && !description) {
     return response
       .status(400)
       .json({ error: "At least one field is required!" });
