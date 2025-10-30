@@ -17,27 +17,27 @@ const {
 router
     .route("/")
     .get(getAllProgram)
-    .post(verifyJWT, verifyRoles(roles.Admin), postProgram);
+    .post(verifyJWT, verifyRoles(roles.SuperAdmin), postProgram);
 
 router
     .route("/:id")
-    .all(verifyJWT, verifyRoles(roles.Admin))
+    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
     .put(editProgram)
     .delete(deleteProgram);
 
 router
     .route("/:id/items")
-    .all(verifyJWT, verifyRoles(roles.Admin))
+    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
     .post(postProgramItem);
 
 router
     .route("/:id/items/:itemId")
-    .all(verifyJWT, verifyRoles(roles.Admin))
+    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
     .delete(deleteProgramItem);
 
 router
     .route("/title/:title")
-    .all(verifyJWT, verifyRoles(roles.Admin))
+    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
     .get(getProgramByTitle);
 
 module.exports = router;

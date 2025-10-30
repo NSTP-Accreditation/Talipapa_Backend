@@ -56,7 +56,7 @@ router.get("/:id", getFarmInventoryById);
 router.post(
   "/",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  verifyRoles(roles.SuperAdmin),
   upload.single("image"),
   createFarmInventory
 );
@@ -64,7 +64,7 @@ router.post(
 router.put(
   "/:id",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  verifyRoles(roles.SuperAdmin),
   upload.single("image"),
   updateFarmInventory
 );
@@ -72,14 +72,14 @@ router.put(
 router.patch(
   "/:id/stocks",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  verifyRoles(roles.SuperAdmin),
   updateFarmInventoryStocks
 );
 
 router.delete(
   "/:id",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  verifyRoles(roles.SuperAdmin),
   deleteFarmInventory
 );
 

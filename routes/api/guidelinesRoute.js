@@ -16,12 +16,12 @@ const roles = require("../../config/roles");
 router
   .route("")
   .get(getAllGuideline)
-  .post(verifyJWT, verifyRoles(roles.Admin), postGuideline);
+  .post(verifyJWT, verifyRoles(roles.SuperAdmin), postGuideline);
 
 router
   .route("/:id")
   .get(getSingleGuideline)
-  .put(verifyJWT, verifyRoles(roles.Admin), updateGuideline)
-  .delete(verifyJWT, verifyRoles(roles.Admin), deleteGuideline);
+  .put(verifyJWT, verifyRoles(roles.SuperAdmin), updateGuideline)
+  .delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteGuideline);
 
 module.exports = router;

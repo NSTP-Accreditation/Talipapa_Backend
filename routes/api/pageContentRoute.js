@@ -13,13 +13,13 @@ const roles = require('../../config/roles');
 const upload = require('../../middlewares/fileUpload');
 
 router.route("")
-  .post(verifyJWT, verifyRoles(roles.Admin), upload.single('image'), postPageContents);
+  .post(verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), postPageContents);
 
 // Get page content by id
 router.get("/:id", getPageContent);
 
-router.patch("/:id", verifyJWT, verifyRoles(roles.Admin), updatePageContents);
+router.patch("/:id", verifyJWT, verifyRoles(roles.SuperAdmin), updatePageContents);
 
-router.patch("/:id/withImage",verifyJWT, verifyRoles(roles.Admin), upload.single('image'), updatePageContentsWithImage)
+router.patch("/:id/withImage",verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), updatePageContentsWithImage)
 
 module.exports = router;

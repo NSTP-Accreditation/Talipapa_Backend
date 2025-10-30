@@ -15,12 +15,12 @@ const roles = require('../../config/roles');
 
 router.route("")
 .get(getAllOfficials)
-.post(verifyJWT, verifyRoles(roles.Admin), upload.single('image'), postOfficials);
+.post(verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), postOfficials);
 
-router.put("/bulk-update", verifyJWT, verifyRoles(roles.Admin), bulkUpdate);
+router.put("/bulk-update", verifyJWT, verifyRoles(roles.SuperAdmin), bulkUpdate);
 
 router.route("/:id")
-.patch(verifyJWT, verifyRoles(roles.Admin), upload.single("image"), updateOfficials)
-.delete(verifyJWT, verifyRoles(roles.Admin), deleteOfficials);
+.patch(verifyJWT, verifyRoles(roles.SuperAdmin), upload.single("image"), updateOfficials)
+.delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteOfficials);
 
 module.exports = router;

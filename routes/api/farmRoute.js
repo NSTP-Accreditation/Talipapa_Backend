@@ -8,6 +8,6 @@ const upload = require('../../middlewares/fileUpload');
 
 router.route('/')
   .get(getFarms)
-  .post(verifyJWT, verifyRoles(ROLES.Admin), upload.single("image"), addFarm)
+  .post(verifyJWT, verifyRoles(ROLES.SuperAdmin), upload.single("image"), addFarm)
 
 module.exports = router;

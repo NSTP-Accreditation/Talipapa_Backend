@@ -16,13 +16,13 @@ router.get("/", getMaterials);
 
 router
   .route("/")
-  .all(verifyJWT, verifyRoles(roles.Admin))
+  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
   .post(upload.single('image'), createMaterial)
   .delete(deleteAllMaterial);
 
 router
   .route("/:id")
-  .all(verifyJWT, verifyRoles(roles.Admin))
+  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
   .put(upload.single('image'), updateMaterial)
   .patch(upload.single('image'), updateMaterial)
   .delete(deleteMaterial);

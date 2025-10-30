@@ -15,19 +15,19 @@ const roles = require("../../config/roles");
 router.get(
   "/search",
   verifyJWT,
-  verifyRoles(roles.Admin),
+  verifyRoles(roles.SuperAdmin),
   searchRecords
 );
 
 router
   .route("/")
-  .all(verifyJWT, verifyRoles(roles.Admin))
+  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
   .get(getRecords)
   .post(createRecord);
 
 router.route("/:record_id")
   .get(getSingleRecord)
-  .patch(verifyJWT, verifyRoles(roles.Admin), updateRecord)
+  .patch(verifyJWT, verifyRoles(roles.SuperAdmin), updateRecord)
   .delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteRecord)
 
 module.exports = router;
