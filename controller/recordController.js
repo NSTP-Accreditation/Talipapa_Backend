@@ -216,25 +216,47 @@ const getSingleRecord = async (req, res) => {
 };
 
 const searchRecords = async (req, res) => {
-  const { query } = req.query;
+  const { residentStatus, query } = req.query;
 
   if (!query)
     return res.status(400).json({ error: "Search query is required!" });
 
   try {
-    const searchResults = await Record.find({
+    // Build filter object
+    const filter = {
       $or: [
         { _id: { $regex: query, $options: "i" } },
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
         { middleName: { $regex: query, $options: "i" } },
       ],
-    })
+    };
+
+    // Add resident status filter if provided
+    if (residentStatus) {
+      if (residentStatus === 'resident') {
+        filter.isResident = true;
+      } else if (residentStatus === 'non-resident') {
+        filter.isResident = false;
+      } else {
+        return res.status(400).json({ 
+          error: "Invalid residentStatus. Use 'resident' or 'non-resident'" 
+        });
+      }
+    }
+
+    const searchResults = await Record.find(filter)
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
 
-    res.json(searchResults);
+    // Add residentStatus field to each result
+    const resultsWithStatus = searchResults.map(record => ({
+      ...record,
+      residentStatus: record.isResident ? 'Resident' : 'Non-Resident'
+    }));
+
+    res.json(resultsWithStatus);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
