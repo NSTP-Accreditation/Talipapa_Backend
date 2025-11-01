@@ -4,9 +4,36 @@ const { LOGCONSTANTS } = require("../config/constants");
 
 const getRecords = async (req, res) => {
   try {
-    const records = await Record.find().sort({ createdAt: -1 });
-    if (!records) return res.status(200).json({ message: "No Records Found." });
-    res.json(records);
+    const { residentStatus, search } = req.query;
+    
+    // Build filter object
+    const filter = {};
+    
+    // Filter by resident status
+    if (residentStatus === 'resident') {
+      filter.isResident = true;
+    } else if (residentStatus === 'non-resident') {
+      filter.isResident = false;
+    }
+    
+    // Search filter
+    if (search) {
+      filter.$or = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { middleName: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const records = await Record.find(filter).sort({ createdAt: -1 });
+    
+      // Transform records
+    const recordsWithStatus = records.map(record => ({
+      ...record.toObject(),
+      residentStatus: record.isResident ? 'Resident' : 'Non-Resident'
+    }));
+
+    res.json(recordsWithStatus  );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
