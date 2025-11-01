@@ -115,13 +115,12 @@ const postStaff = async (request, response) => {
       skills,
       contact_number,
       assigned_farm,
-      time_in_field,
     } = request.body;
 
-    if (!name || !age || !gender || !time_in_field)
+    if (!name || !age || !gender)
       return response
         .status(400)
-        .json({ message: "name, age, gender and time_in_field ar e required" });
+        .json({ message: "name, age, gender and are required" });
 
     // If skills provided as strings (ids), verify they exist
     let skillIds = [];
@@ -141,16 +140,20 @@ const postStaff = async (request, response) => {
           .json({ message: "One or more provided skill IDs do not exist" });
     }
 
+    positionArray = [{
+      id: position, // Use the string as id
+      label: position // Use the string as label (you might want to format this)
+    }];
+
     const staffObj = await Staff.create({
       name,
       age,
       gender,
       email_address,
-      position,
+      position: positionArray,
       skills: skillIds, 
       contact_number,
       assigned_farm,
-      time_in_field,
     });
 
     await createLog({

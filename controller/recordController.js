@@ -13,7 +13,7 @@ const getRecords = async (req, res) => {
 };
 
 const createRecord = async (req, res) => {
-  const { firstName, lastName, middleName, age, address, contact_number } =
+  const { firstName, lastName, middleName, age, isResident, suffix, address, contact_number } =
     req.body;
 
   if (!firstName || !lastName || !middleName)
@@ -34,7 +34,9 @@ const createRecord = async (req, res) => {
       firstName,
       lastName,
       middleName,
+      suffix,
       age,
+      isResident,
       address,
       contact_number,
     });
@@ -69,6 +71,7 @@ const updateRecord = async (req, res) => {
     lastName,
     middleName,
     age,
+    isResident,
     contact_number,
     address,
     points,
@@ -87,6 +90,7 @@ const updateRecord = async (req, res) => {
     if (firstName !== undefined) updateFields.firstName = firstName;
     if (middleName !== undefined) updateFields.middleName = middleName;
     if (age !== undefined) updateFields.age = age;
+    if (isResident !== undefined) updateFields.isResident = isResident;
     if (contact_number !== undefined) updateFields.contact_number = contact_number;
     if (address !== undefined) updateFields.address = address;
     if (materials !== undefined) updateFields.materials = materials;
