@@ -86,13 +86,6 @@ const updatePageContents = async (request, response) => {
       barangayHistory,
       barangayDescription,
     } = request.body;
-    if (!mission || !vision || !barangayName || !barangayHistory || !barangayDescription)
-      return response
-        .status(400)
-        .json({
-          message:
-            "Mission, Vision, Barangay Name, Barangay History, Barangay Description are required!",
-        });
 
     const oldContent = await PageContent.findById({ _id: id });
     if (!oldContent)
