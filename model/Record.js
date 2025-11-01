@@ -16,9 +16,17 @@ const recordSchema = new Schema({
     type: String,
     required: true
   },
+  suffix: {
+    type: String,
+    default: ''
+  },
   age: {
     type: String,
     required: true
+  },
+  isResident: {
+    type: Boolean,
+    default: true
   },
   address: {
     type: String,
