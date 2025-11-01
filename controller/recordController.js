@@ -40,10 +40,10 @@ const getRecords = async (req, res) => {
 };
 
 const createRecord = async (req, res) => {
-  const { firstName, lastName, middleName, age, isResident, suffix, address, contact_number } =
+  const { firstName, lastName, middleName, age, gender, isResident, suffix, address, contact_number } =
     req.body;
 
-  if (!firstName || !lastName || !middleName)
+  if (!firstName || !lastName || !middleName || !gender)
     return res.status(400).json({ error: "All Fields are Required" });
 
   const duplicateRecord = await Record.findOne({
@@ -63,6 +63,7 @@ const createRecord = async (req, res) => {
       middleName,
       suffix,
       age,
+      gender,
       isResident,
       address,
       contact_number,
@@ -101,6 +102,7 @@ const updateRecord = async (req, res) => {
     isResident,
     contact_number,
     address,
+    gender,
     points,
     materials,
   } = req.body;
@@ -117,6 +119,7 @@ const updateRecord = async (req, res) => {
     if (firstName !== undefined) updateFields.firstName = firstName;
     if (middleName !== undefined) updateFields.middleName = middleName;
     if (age !== undefined) updateFields.age = age;
+    if (gender !== undefined) updateFields.gender = gender;
     if (isResident !== undefined) updateFields.isResident = isResident;
     if (contact_number !== undefined) updateFields.contact_number = contact_number;
     if (address !== undefined) updateFields.address = address;
