@@ -1,4 +1,5 @@
 const User = require("../model/User");
+const bcrypt = require("bcrypt");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
 
@@ -57,4 +58,79 @@ const handleDeleteAccount = async (request, response) => {
   }
 };
 
-module.exports = { getAllUsers, handleDeleteAccount };
+const handleUpdateAccount = async (request, response) => {
+  const { id } = request.params;
+  const { username, email, contactNumber, roles, password } = request.body;
+
+  if (!id) return response.status(400).json({ message: "ID is required!" });
+
+  try {
+    const foundUser = await User.findOne({ _id: id });
+    if (!foundUser)
+      return response
+        .status(404)
+        .json({ message: `User not found with ID ${id}` });
+
+    // Check if username or email already exists (excluding current user)
+    if (username && username !== foundUser.username) {
+      const existingUser = await User.findOne({ username, _id: { $ne: id } });
+      if (existingUser) {
+        return response
+          .status(409)
+          .json({ message: "Username already exists" });
+      }
+    }
+
+    if (email && email !== foundUser.email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: id } });
+      if (existingUser) {
+        return response.status(409).json({ message: "Email already exists" });
+      }
+    }
+
+    // Email validation
+    if (email) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        return response.status(400).json({ message: "Invalid Email Format!" });
+      }
+    }
+
+    // Contact number validation
+    if (contactNumber && contactNumber.length !== 11) {
+      return response.status(400).json({ message: "Invalid Contact Number!" });
+    }
+
+    // Update fields
+    if (username) foundUser.username = username;
+    if (email) foundUser.email = email;
+    if (contactNumber) foundUser.contactNumber = contactNumber;
+    if (roles) foundUser.roles = roles;
+
+    // Update password if provided
+    if (password && password.trim().length >= 6) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      foundUser.password = hashedPassword;
+    }
+
+    await foundUser.save();
+
+    // Log user update
+    await createLog({
+      action: LOGCONSTANTS.actions.user.UPDATE_USER,
+      category: LOGCONSTANTS.categories.USER_MANAGEMENT,
+      title: "User Account Updated",
+      description: `User "${foundUser.username}" was updated`,
+      performedBy: request.userId,
+      targetType: "USER",
+      targetId: foundUser._id.toString(),
+      targetName: foundUser.username,
+    });
+
+    response.json({ message: "User updated successfully" });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { getAllUsers, handleDeleteAccount, handleUpdateAccount };
