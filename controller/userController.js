@@ -5,23 +5,20 @@ const { LOGCONSTANTS } = require("../config/constants");
 
 const getAllUsers = async (request, response) => {
   try {
-    const users = await User.find({});
-    const result = users.map(
-      ({ _id, username, email, contactNumber, roles }) => {
-        const rolesKeys = Object.keys(roles).filter(
-          (role) => roles[role] != null
-        );
-        const result = {
-          _id,
-          username,
-          email,
-          contactNumber,
-          rolesKeys,
-        };
+    const users = await User.find({}).select("-password -refreshToken").exec();
 
-        return result;
-      }
-    );
+    const result = users.map((user) => {
+      const userObj = user.toObject({ virtuals: true });
+      return {
+        _id: userObj._id,
+        username: userObj.username,
+        email: userObj.email,
+        contactNumber: userObj.contactNumber,
+        roles: userObj.roles,
+        rolesKeys: userObj.rolesKeys,
+      };
+    });
+
     return response.json(result);
   } catch (error) {
     response.status(500).json({ error: error.message });
