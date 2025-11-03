@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const Establishment = require('../model/Establishment');
 
 const getAllEstablishments = async (request, response) => {

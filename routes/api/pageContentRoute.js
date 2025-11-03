@@ -26,7 +26,6 @@ router.patch("/:id", verifyJWT, verifyRoles(roles.SuperAdmin), updatePageContent
 
 router.patch("/:id/withImage",verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), updatePageContentsWithImage)
 
-
 router.get('/:id/carousel', getCarouselItems);
 router.post('/:id/carousel', upload.single('image'), addCarouselItem);
 router.patch('/:id/carousel/:carouselItemId', upload.single('image'), updateCarouselItem);
