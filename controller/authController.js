@@ -10,8 +10,7 @@ const handleCreateAccount = async (request, response) => {
 
   if (!username || !email | !contactNumber || !password)
     return response.status(400).json({
-      message:
-        "Username, Email, Contact Number and Password is required!",
+      message: "Username, Email, Contact Number and Password is required!",
     });
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -24,8 +23,10 @@ const handleCreateAccount = async (request, response) => {
   }
 
   const rolesKeys = Object.keys(roles);
-  if(!Array.isArray(rolesKeys) || rolesKeys.length === 0) {
-    return response.status(400).json({ message: "At least one role is required!"});
+  if (!Array.isArray(rolesKeys) || rolesKeys.length === 0) {
+    return response
+      .status(400)
+      .json({ message: "At least one role is required!" });
   }
 
   try {
@@ -138,7 +139,7 @@ const handleLogin = async (request, response) => {
           username: foundUser.username,
           email: foundUser.email,
           roles: foundUser.roles,
-          rolesKeys: foundUser.rolesKeys || []
+          rolesKeys: foundUser.rolesKeys || [],
         },
         accessToken: accessToken,
       });
@@ -187,7 +188,7 @@ const handleRefreshToken = async (request, response) => {
             username: foundUser.username,
             email: foundUser.email,
             roles: foundUser.roles,
-            rolesKeys: foundUser.rolesKeys || []
+            rolesKeys: foundUser.rolesKeys || [],
           },
           accessToken: accessToken,
         });

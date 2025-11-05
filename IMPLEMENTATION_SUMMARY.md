@@ -9,6 +9,7 @@ Your Talipapa Backend now has comprehensive Role-Based Access Control (RBAC) sec
 ## 📦 What Was Implemented
 
 ### New Files Created
+
 1. **`middlewares/permissions.js`** - Permission definitions and role-permission mappings
 2. **`middlewares/rbac.utils.js`** - Utility functions for role and permission checks
 3. **`middlewares/checkPermission.js`** - Permission validation middleware
@@ -19,6 +20,7 @@ Your Talipapa Backend now has comprehensive Role-Based Access Control (RBAC) sec
 8. **`IMPLEMENTATION_SUMMARY.md`** - This file
 
 ### Files Updated
+
 1. **`middlewares/verifyJWT.js`** - Enhanced to fetch full user object with roles
 2. **`controller/authController.js`** - Login/refresh now returns full user data with roles
 3. **`routes/auth.js`** - Signup now requires SuperAdmin permission
@@ -45,11 +47,13 @@ Your Talipapa Backend now has comprehensive Role-Based Access Control (RBAC) sec
 ## 🔐 Security Features
 
 ### Role-Based Permissions
+
 - **SuperAdmin** - Full system access (all permissions)
 - **Admin** - Management access (cannot manage other admins)
 - **Staff** - Read-only access (view permissions only)
 
 ### Permission Categories
+
 1. **User Management** - view, create, edit, delete users
 2. **Records Management** - view, create, edit, delete records
 3. **Content Management** - view, edit, delete content
@@ -62,6 +66,7 @@ Your Talipapa Backend now has comprehensive Role-Based Access Control (RBAC) sec
 10. **Admin Management** - manage admins (SuperAdmin only)
 
 ### Security Logging
+
 - All permission denials are logged with user, permission, endpoint, and timestamp
 - Authentication failures are logged
 - Easy to monitor and audit
@@ -71,12 +76,14 @@ Your Talipapa Backend now has comprehensive Role-Based Access Control (RBAC) sec
 ## 🚀 Quick Start
 
 ### 1. Configure Environment
+
 ```bash
 cp .env.example .env
 # Edit .env and set JWT secrets and role IDs
 ```
 
 ### 2. Critical Environment Variables
+
 ```env
 ACCESS_TOKEN_SECRET=your-super-secret-key
 SUPERADMIN_ROLE_ID=32562
@@ -85,11 +92,13 @@ STAFF_ROLE_ID=3
 ```
 
 ### 3. Start Server
+
 ```bash
 npm start
 ```
 
 ### 4. Test Authentication
+
 ```bash
 # Login
 curl -X POST http://localhost:5000/auth/login \
@@ -105,21 +114,22 @@ curl -X GET http://localhost:5000/api/users \
 
 ## 📊 Permission Matrix
 
-| Feature | SuperAdmin | Admin | Staff |
-|---------|-----------|-------|-------|
-| View All Data | ✓ | ✓ | ✓ |
-| Create/Edit Data | ✓ | ✓ | ✗ |
-| Delete Data | ✓ | ✓ | ✗ |
-| Manage Admins | ✓ | ✗ | ✗ |
-| View Settings | ✓ | ✓ | ✓ |
-| Edit Settings | ✓ | ✗ | ✗ |
-| Export Data | ✓ | ✓ | ✗ |
+| Feature          | SuperAdmin | Admin | Staff |
+| ---------------- | ---------- | ----- | ----- |
+| View All Data    | ✓          | ✓     | ✓     |
+| Create/Edit Data | ✓          | ✓     | ✗     |
+| Delete Data      | ✓          | ✓     | ✗     |
+| Manage Admins    | ✓          | ✗     | ✗     |
+| View Settings    | ✓          | ✓     | ✓     |
+| Edit Settings    | ✓          | ✗     | ✗     |
+| Export Data      | ✓          | ✓     | ✗     |
 
 ---
 
 ## 🛡️ How It Works
 
 ### Authentication Flow
+
 ```
 1. User sends credentials to /auth/login
 2. Server validates and creates JWT with role IDs
@@ -128,6 +138,7 @@ curl -X GET http://localhost:5000/api/users \
 ```
 
 ### Authorization Flow
+
 ```
 1. Client sends request with Authorization header
 2. verifyJWT middleware validates token
@@ -137,6 +148,7 @@ curl -X GET http://localhost:5000/api/users \
 ```
 
 ### Example Request Flow
+
 ```
 GET /api/users
 ├─ verifyJWT
@@ -157,44 +169,44 @@ GET /api/users
 ## 📝 Code Examples
 
 ### Route Protection
+
 ```javascript
-const { checkPermission } = require('../../middlewares/checkPermission');
-const { Permission } = require('../../middlewares/rbac.utils');
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
 // View permission
-router.get('/users',
+router.get(
+  "/users",
   verifyJWT,
   checkPermission(Permission.VIEW_USERS),
   getAllUsers
 );
 
 // Create permission
-router.post('/users',
+router.post(
+  "/users",
   verifyJWT,
   checkPermission(Permission.CREATE_USERS),
   createUser
 );
 
 // SuperAdmin only
-router.post('/auth/signup',
-  verifyJWT,
-  requireSuperAdmin,
-  handleCreateAccount
-);
+router.post("/auth/signup", verifyJWT, requireSuperAdmin, handleCreateAccount);
 ```
 
 ### Permission Checks in Controllers
+
 ```javascript
-const { hasPermission, isSuperAdmin } = require('../middlewares/rbac.utils');
+const { hasPermission, isSuperAdmin } = require("../middlewares/rbac.utils");
 
 // Check if user can perform action
 if (!hasPermission(req.user, Permission.DELETE_USERS)) {
-  return res.status(403).json({ message: 'Insufficient permissions' });
+  return res.status(403).json({ message: "Insufficient permissions" });
 }
 
 // Check if user is SuperAdmin
 if (!isSuperAdmin(req.user)) {
-  return res.status(403).json({ message: 'SuperAdmin required' });
+  return res.status(403).json({ message: "SuperAdmin required" });
 }
 ```
 
@@ -223,6 +235,7 @@ Before going to production, verify:
 ## 🧪 Testing Scenarios
 
 ### Test 1: SuperAdmin Full Access
+
 ```bash
 # Login as SuperAdmin
 # Test: Create user ✓
@@ -232,6 +245,7 @@ Before going to production, verify:
 ```
 
 ### Test 2: Admin Limited Access
+
 ```bash
 # Login as Admin
 # Test: View users ✓
@@ -241,6 +255,7 @@ Before going to production, verify:
 ```
 
 ### Test 3: Staff Read-Only
+
 ```bash
 # Login as Staff
 # Test: View users ✓
@@ -255,15 +270,16 @@ Before going to production, verify:
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| 401 Unauthorized | Missing/invalid token | Include Authorization header |
-| 403 Forbidden | Insufficient permissions | Check user's role and permissions |
-| User not found | JWT valid but user deleted | Re-login or check database |
-| Role IDs mismatch | .env IDs ≠ database IDs | Verify role IDs match everywhere |
-| All requests fail | Wrong JWT secret | Check ACCESS_TOKEN_SECRET |
+| Issue             | Cause                      | Solution                          |
+| ----------------- | -------------------------- | --------------------------------- |
+| 401 Unauthorized  | Missing/invalid token      | Include Authorization header      |
+| 403 Forbidden     | Insufficient permissions   | Check user's role and permissions |
+| User not found    | JWT valid but user deleted | Re-login or check database        |
+| Role IDs mismatch | .env IDs ≠ database IDs    | Verify role IDs match everywhere  |
+| All requests fail | Wrong JWT secret           | Check ACCESS_TOKEN_SECRET         |
 
 ### Debug Commands
+
 ```bash
 # Check environment variables
 cat .env | grep ROLE_ID
@@ -289,18 +305,21 @@ tail -f logs/server.log | grep RBAC
 ## 🎯 Next Steps
 
 ### Immediate
+
 1. Configure `.env` file with proper values
 2. Test authentication flow
 3. Test each role's permissions
 4. Review server logs for errors
 
 ### Short Term
+
 1. Update frontend to use new user data structure
 2. Add permission checks in frontend
 3. Implement proper error handling
 4. Add rate limiting
 
 ### Long Term
+
 1. Set up monitoring and alerts
 2. Implement audit trail
 3. Add two-factor authentication
@@ -311,6 +330,7 @@ tail -f logs/server.log | grep RBAC
 ## 🌟 Benefits Achieved
 
 ### Security
+
 ✅ All endpoints protected with permission checks
 ✅ Granular access control per operation
 ✅ Security event logging
@@ -318,6 +338,7 @@ tail -f logs/server.log | grep RBAC
 ✅ Role hierarchy enforcement
 
 ### Maintainability
+
 ✅ Centralized permission definitions
 ✅ Easy to add new roles
 ✅ Clear separation of concerns
@@ -325,6 +346,7 @@ tail -f logs/server.log | grep RBAC
 ✅ Type-safe permission checks
 
 ### Developer Experience
+
 ✅ Clear error messages
 ✅ Comprehensive documentation
 ✅ Easy to test
@@ -365,6 +387,7 @@ Your RBAC implementation is successful when:
 Your Talipapa Backend is now production-ready with enterprise-grade RBAC!
 
 **Key Achievements:**
+
 - ✅ 15+ route files updated with RBAC
 - ✅ 40+ permissions defined and mapped
 - ✅ 3 roles with distinct access levels

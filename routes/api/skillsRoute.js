@@ -8,9 +8,9 @@ const {
 } = require("../../controller/skillsController");
 
 const router = express.Router();
-const verifyJWT = require('../../middlewares/verifyJWT');
-const { checkPermission } = require('../../middlewares/checkPermission');
-const { Permission } = require('../../middlewares/rbac.utils');
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
 // Get all skills - VIEW_CONTENT permission required
 router.get(

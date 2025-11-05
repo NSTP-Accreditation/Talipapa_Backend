@@ -8,10 +8,10 @@ const {
 } = require("../../controller/officialsController");
 
 const router = express.Router();
-const verifyJWT = require('../../middlewares/verifyJWT');
-const { checkPermission } = require('../../middlewares/checkPermission');
-const { Permission } = require('../../middlewares/rbac.utils');
-const upload = require('../../middlewares/fileUpload');
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
+const upload = require("../../middlewares/fileUpload");
 
 // Get all officials - VIEW_CONTENT permission required
 router.get(
@@ -26,7 +26,7 @@ router.post(
   "/",
   verifyJWT,
   checkPermission(Permission.EDIT_CONTENT),
-  upload.single('image'),
+  upload.single("image"),
   postOfficials
 );
 

@@ -1,10 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const { getAllAchievements, postAchievements, updateAchievements, deleteAchievements } = require("../../controller/achievementsController");
+const {
+  getAllAchievements,
+  postAchievements,
+  updateAchievements,
+  deleteAchievements,
+} = require("../../controller/achievementsController");
 const verifyJWT = require("../../middlewares/verifyJWT");
 const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
-const upload = require('../../middlewares/fileUpload');
+const upload = require("../../middlewares/fileUpload");
 
 // Get all achievements - VIEW_ACHIEVEMENTS permission required
 router.get(
@@ -19,7 +24,7 @@ router.post(
   "/",
   verifyJWT,
   checkPermission(Permission.MANAGE_ACHIEVEMENTS),
-  upload.single('image'),
+  upload.single("image"),
   postAchievements
 );
 
@@ -28,7 +33,7 @@ router.patch(
   "/:id",
   verifyJWT,
   checkPermission(Permission.MANAGE_ACHIEVEMENTS),
-  upload.single('image'),
+  upload.single("image"),
   updateAchievements
 );
 

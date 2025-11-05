@@ -1,4 +1,4 @@
-const { Permission, ROLE_PERMISSIONS } = require('./permissions');
+const { Permission, ROLE_PERMISSIONS } = require("./permissions");
 
 /**
  * Get role from environment ID
@@ -8,9 +8,9 @@ const getRoleFromId = (roleId) => {
   const ADMIN_ID = parseInt(process.env.ADMIN_ROLE_ID);
   const STAFF_ID = parseInt(process.env.STAFF_ROLE_ID);
 
-  if (roleId === SUPERADMIN_ID) return 'SUPERADMIN';
-  if (roleId === ADMIN_ID) return 'ADMIN';
-  if (roleId === STAFF_ID) return 'STAFF';
+  if (roleId === SUPERADMIN_ID) return "SUPERADMIN";
+  if (roleId === ADMIN_ID) return "ADMIN";
+  if (roleId === STAFF_ID) return "STAFF";
   return null;
 };
 
@@ -25,9 +25,9 @@ const getUserRole = (user) => {
   const STAFF_ID = parseInt(process.env.STAFF_ROLE_ID);
 
   // Check in priority order
-  if (user.roles.SuperAdmin === SUPERADMIN_ID) return 'SUPERADMIN';
-  if (user.roles.Admin === ADMIN_ID) return 'ADMIN';
-  if (user.roles.Staff === STAFF_ID) return 'STAFF';
+  if (user.roles.SuperAdmin === SUPERADMIN_ID) return "SUPERADMIN";
+  if (user.roles.Admin === ADMIN_ID) return "ADMIN";
+  if (user.roles.Staff === STAFF_ID) return "STAFF";
 
   return null;
 };
@@ -54,35 +54,35 @@ const hasPermission = (user, permission) => {
  * Check if user has any of the specified permissions
  */
 const hasAnyPermission = (user, permissions) => {
-  return permissions.some(permission => hasPermission(user, permission));
+  return permissions.some((permission) => hasPermission(user, permission));
 };
 
 /**
  * Check if user has all of the specified permissions
  */
 const hasAllPermissions = (user, permissions) => {
-  return permissions.every(permission => hasPermission(user, permission));
+  return permissions.every((permission) => hasPermission(user, permission));
 };
 
 /**
  * Check if user is SuperAdmin
  */
 const isSuperAdmin = (user) => {
-  return getUserRole(user) === 'SUPERADMIN';
+  return getUserRole(user) === "SUPERADMIN";
 };
 
 /**
  * Check if user is Admin
  */
 const isAdmin = (user) => {
-  return getUserRole(user) === 'ADMIN';
+  return getUserRole(user) === "ADMIN";
 };
 
 /**
  * Check if user is Staff
  */
 const isStaff = (user) => {
-  return getUserRole(user) === 'STAFF';
+  return getUserRole(user) === "STAFF";
 };
 
 module.exports = {
@@ -95,5 +95,5 @@ module.exports = {
   isSuperAdmin,
   isAdmin,
   isStaff,
-  Permission
+  Permission,
 };

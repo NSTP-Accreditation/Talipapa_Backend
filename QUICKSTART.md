@@ -9,16 +9,18 @@ Your backend now has comprehensive Role-Based Access Control (RBAC) protecting a
 ### Step 1: Configure Environment Variables
 
 1. Copy the example environment file:
+
    ```bash
    cp .env.example .env
    ```
 
 2. Edit `.env` and set these critical values:
+
    ```env
    # JWT Secrets - Generate strong random strings
    ACCESS_TOKEN_SECRET=your-super-secret-access-token-key
    REFRESH_TOKEN_SECRET=your-super-secret-refresh-token-key
-   
+
    # Role IDs - MUST match frontend exactly
    SUPERADMIN_ROLE_ID=32562
    ADMIN_ROLE_ID=92781
@@ -28,11 +30,13 @@ Your backend now has comprehensive Role-Based Access Control (RBAC) protecting a
    ⚠️ **CRITICAL**: The role IDs must be identical on both frontend and backend!
 
 ### Step 2: Install Dependencies (if needed)
+
 ```bash
 npm install
 ```
 
 ### Step 3: Start the Server
+
 ```bash
 npm start
 ```
@@ -40,17 +44,20 @@ npm start
 ## 📋 What Changed
 
 ### ✅ New Middleware Files
+
 - `middlewares/permissions.js` - Permission definitions
-- `middlewares/rbac.utils.js` - Role checking utilities  
+- `middlewares/rbac.utils.js` - Role checking utilities
 - `middlewares/checkPermission.js` - Permission validation middleware
 
 ### ✅ Updated Files
+
 - `middlewares/verifyJWT.js` - Now fetches full user with roles
 - `controller/authController.js` - JWT includes role IDs, returns user data with roles
 - `routes/auth.js` - Signup now requires SuperAdmin
 - All route files in `routes/api/` - Protected with permission checks
 
 ### ✅ Documentation
+
 - `RBAC_IMPLEMENTATION.md` - Complete implementation guide
 - `.env.example` - Environment variable template
 - `QUICKSTART.md` - This file
@@ -58,6 +65,7 @@ npm start
 ## 🔐 How It Works
 
 ### 1. User Login
+
 ```javascript
 POST /auth/login
 Body: { username, password }
@@ -75,10 +83,11 @@ Response:
 ```
 
 ### 2. Authenticated Request
+
 ```javascript
-GET /api/users
+GET / api / users;
 Headers: {
-  Authorization: "Bearer <accessToken>"
+  Authorization: "Bearer <accessToken>";
 }
 
 // Middleware chain:
@@ -88,6 +97,7 @@ Headers: {
 ```
 
 ### 3. Permission Check
+
 ```javascript
 // User's role determines permissions
 SuperAdmin → All permissions
@@ -100,6 +110,7 @@ Staff → View-only permissions
 ### Test with cURL
 
 1. **Login as SuperAdmin:**
+
    ```bash
    curl -X POST http://localhost:5000/auth/login \
      -H "Content-Type: application/json" \
@@ -107,12 +118,14 @@ Staff → View-only permissions
    ```
 
 2. **Use the token from response:**
+
    ```bash
    curl -X GET http://localhost:5000/api/users \
      -H "Authorization: Bearer YOUR_TOKEN_HERE"
    ```
 
 3. **Expected Success Response:**
+
    ```json
    {
      "success": true,
@@ -131,26 +144,31 @@ Staff → View-only permissions
 
 ## 📊 Permission Matrix
 
-| Action | SuperAdmin | Admin | Staff |
-|--------|-----------|-------|-------|
-| View Data | ✓ | ✓ | ✓ |
-| Create/Edit Data | ✓ | ✓ | ✗ |
-| Delete Data | ✓ | ✓ | ✗ |
-| Manage Admins | ✓ | ✗ | ✗ |
+| Action           | SuperAdmin | Admin | Staff |
+| ---------------- | ---------- | ----- | ----- |
+| View Data        | ✓          | ✓     | ✓     |
+| Create/Edit Data | ✓          | ✓     | ✗     |
+| Delete Data      | ✓          | ✓     | ✗     |
+| Manage Admins    | ✓          | ✗     | ✗     |
 
 ## 🔧 Common Issues
 
 ### Issue: "Authentication required" (401)
+
 **Solution:** Include `Authorization: Bearer <token>` header in request
 
 ### Issue: "Insufficient permissions" (403)
+
 **Solution:** User's role doesn't have required permission. Check user's roles in database.
 
 ### Issue: "Invalid or expired token" (403)
+
 **Solution:** Token expired or invalid. Login again to get new token.
 
 ### Issue: Role IDs not working
-**Solution:** 
+
+**Solution:**
+
 1. Check `.env` has correct role IDs: 32562, 92781, 3
 2. Verify user document in database has matching role IDs
 3. Restart server after changing `.env`
@@ -160,23 +178,27 @@ Staff → View-only permissions
 All routes now require authentication and appropriate permissions:
 
 ### User Management (`/api/users`)
+
 - GET `/` - Requires `view_users`
 - PUT `/:id` - Requires `edit_users`
 - DELETE `/:id` - Requires `delete_users`
 
 ### Records (`/api/records`)
+
 - GET `/` - Requires `view_records`
 - POST `/` - Requires `create_records`
 - PATCH `/:id` - Requires `edit_records`
 - DELETE `/:id` - Requires `delete_records`
 
 ### News (`/api/news`)
+
 - GET `/` - Requires `view_news`
 - POST `/` - Requires `manage_news`
 - PUT `/:id` - Requires `manage_news`
 - DELETE `/:id` - Requires `manage_news`
 
 ### Admin Management (`/auth/signup`)
+
 - POST `/signup` - Requires SuperAdmin (only SuperAdmin can create admins)
 
 ...and all other routes are similarly protected!
@@ -184,16 +206,19 @@ All routes now require authentication and appropriate permissions:
 ## 🎓 Next Steps
 
 1. **Test Each Role:**
+
    - Create test users for SuperAdmin, Admin, and Staff
    - Login with each and test different endpoints
    - Verify permissions work as expected
 
 2. **Update Frontend:**
+
    - Ensure frontend uses same role IDs (32562, 92781, 3)
    - Update API calls to include Authorization header
    - Handle 403 errors gracefully
 
 3. **Review Logs:**
+
    - Check server logs for `[RBAC]` messages
    - Monitor for permission denials
    - Investigate any unusual patterns
@@ -207,6 +232,7 @@ All routes now require authentication and appropriate permissions:
 ## 📚 More Information
 
 For detailed information, see:
+
 - `RBAC_IMPLEMENTATION.md` - Complete guide with testing, troubleshooting, and security best practices
 
 ## ✨ Summary
@@ -214,6 +240,7 @@ For detailed information, see:
 Your backend is now fully secured with RBAC! Every API endpoint checks permissions before allowing access. Users can only perform actions their role permits.
 
 **Key Points:**
+
 - ✅ All routes protected with permission checks
 - ✅ JWT includes role information
 - ✅ User roles determine available permissions

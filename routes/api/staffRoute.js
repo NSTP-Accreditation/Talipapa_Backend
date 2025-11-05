@@ -15,12 +15,7 @@ const {
 } = require("../../controller/staffController");
 
 // Get all staff - VIEW_USERS permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_USERS),
-  getAllStaff
-);
+router.get("/", verifyJWT, checkPermission(Permission.VIEW_USERS), getAllStaff);
 
 // Create staff - CREATE_USERS permission required
 router.post(
@@ -32,7 +27,7 @@ router.post(
 
 // Get age distribution - VIEW_USERS permission required
 router.get(
-  '/ageDistribution',
+  "/ageDistribution",
   verifyJWT,
   checkPermission(Permission.VIEW_USERS),
   getAgeDistribution

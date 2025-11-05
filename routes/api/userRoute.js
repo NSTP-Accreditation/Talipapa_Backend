@@ -10,12 +10,7 @@ const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 
 // Get all users - VIEW_USERS permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_USERS),
-  getAllUsers
-);
+router.get("/", verifyJWT, checkPermission(Permission.VIEW_USERS), getAllUsers);
 
 // Delete user - DELETE_USERS permission required
 router.delete(

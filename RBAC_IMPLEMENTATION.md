@@ -1,9 +1,11 @@
 # RBAC Implementation Guide
 
 ## Overview
+
 This backend implements Role-Based Access Control (RBAC) to secure all API endpoints. The implementation ensures that only authorized users can perform specific actions based on their assigned roles.
 
 ## Table of Contents
+
 1. [Role Structure](#role-structure)
 2. [Setup Instructions](#setup-instructions)
 3. [How It Works](#how-it-works)
@@ -13,43 +15,45 @@ This backend implements Role-Based Access Control (RBAC) to secure all API endpo
 ## Role Structure
 
 ### Roles and IDs
+
 - **SuperAdmin** (ID: 32562) - Full system access
 - **Admin** (ID: 92781) - Standard administrative access (cannot manage other admins)
 - **Staff** (ID: 3) - Read-only access
 
 ### Permission Matrix
 
-| Permission | SuperAdmin | Admin | Staff |
-|------------|-----------|-------|-------|
-| **User Management** |
-| View Users | ✓ | ✓ | ✓ |
-| Create Users | ✓ | ✓ | ✗ |
-| Edit Users | ✓ | ✓ | ✗ |
-| Delete Users | ✓ | ✓ | ✗ |
-| **Records Management** |
-| View Records | ✓ | ✓ | ✓ |
-| Create Records | ✓ | ✓ | ✗ |
-| Edit Records | ✓ | ✓ | ✗ |
-| Delete Records | ✓ | ✓ | ✗ |
-| **Content Management** |
-| View Content | ✓ | ✓ | ✓ |
-| Edit Content | ✓ | ✓ | ✗ |
-| Delete Content | ✓ | ✓ | ✗ |
+| Permission                       | SuperAdmin | Admin | Staff |
+| -------------------------------- | ---------- | ----- | ----- |
+| **User Management**              |
+| View Users                       | ✓          | ✓     | ✓     |
+| Create Users                     | ✓          | ✓     | ✗     |
+| Edit Users                       | ✓          | ✓     | ✗     |
+| Delete Users                     | ✓          | ✓     | ✗     |
+| **Records Management**           |
+| View Records                     | ✓          | ✓     | ✓     |
+| Create Records                   | ✓          | ✓     | ✗     |
+| Edit Records                     | ✓          | ✓     | ✗     |
+| Delete Records                   | ✓          | ✓     | ✗     |
+| **Content Management**           |
+| View Content                     | ✓          | ✓     | ✓     |
+| Edit Content                     | ✓          | ✓     | ✗     |
+| Delete Content                   | ✓          | ✓     | ✗     |
 | **News/Guidelines/Achievements** |
-| View | ✓ | ✓ | ✓ |
-| Manage | ✓ | ✓ | ✗ |
-| **Inventory Management** |
-| View Inventory | ✓ | ✓ | ✓ |
-| Manage Inventory | ✓ | ✓ | ✗ |
-| **Activity Logs** |
-| View Activity Logs | ✓ | ✓ | ✓ |
-| Export Data | ✓ | ✓ | ✗ |
-| **Admin Management** |
-| Manage Admins | ✓ | ✗ | ✗ |
+| View                             | ✓          | ✓     | ✓     |
+| Manage                           | ✓          | ✓     | ✗     |
+| **Inventory Management**         |
+| View Inventory                   | ✓          | ✓     | ✓     |
+| Manage Inventory                 | ✓          | ✓     | ✗     |
+| **Activity Logs**                |
+| View Activity Logs               | ✓          | ✓     | ✓     |
+| Export Data                      | ✓          | ✓     | ✗     |
+| **Admin Management**             |
+| Manage Admins                    | ✓          | ✗     | ✗     |
 
 ## Setup Instructions
 
 ### 1. Environment Variables
+
 Copy `.env.example` to `.env` and configure:
 
 ```bash
@@ -57,6 +61,7 @@ cp .env.example .env
 ```
 
 **Critical Settings:**
+
 ```env
 # JWT Secrets (use strong random strings)
 ACCESS_TOKEN_SECRET=your-super-secret-access-token-key
@@ -71,11 +76,13 @@ STAFF_ROLE_ID=3
 ⚠️ **IMPORTANT**: Role IDs must be identical on both frontend and backend!
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Start Server
+
 ```bash
 npm start
 ```
@@ -85,15 +92,18 @@ npm start
 ### Authentication Flow
 
 1. **User Login**
+
    ```
    POST /auth/login
    Body: { username, password }
    ```
+
    - Validates credentials
    - Generates JWT with role IDs
    - Returns access token + user data with roles
 
 2. **Token Structure**
+
    ```json
    {
      "userInfo": {
@@ -113,6 +123,7 @@ npm start
 ### Authorization Flow
 
 1. **JWT Verification** (`verifyJWT` middleware)
+
    - Extracts token from `Authorization` header
    - Verifies token signature
    - Fetches full user object from database (includes roles)
@@ -127,9 +138,10 @@ npm start
 ### Middleware Usage
 
 #### Basic Permission Check
+
 ```javascript
 router.get(
-  '/users',
+  "/users",
   verifyJWT,
   checkPermission(Permission.VIEW_USERS),
   getAllUsers
@@ -137,19 +149,16 @@ router.get(
 ```
 
 #### SuperAdmin Only
+
 ```javascript
-router.post(
-  '/auth/signup',
-  verifyJWT,
-  requireSuperAdmin,
-  handleCreateAccount
-);
+router.post("/auth/signup", verifyJWT, requireSuperAdmin, handleCreateAccount);
 ```
 
 #### Any of Multiple Permissions
+
 ```javascript
 router.get(
-  '/data',
+  "/data",
   verifyJWT,
   checkAnyPermission([Permission.VIEW_USERS, Permission.VIEW_RECORDS]),
   getData
@@ -179,6 +188,7 @@ routes/
 ### 1. Create Test Users
 
 **SuperAdmin:**
+
 ```javascript
 {
   username: "superadmin",
@@ -191,6 +201,7 @@ routes/
 ```
 
 **Admin:**
+
 ```javascript
 {
   username: "admin",
@@ -203,6 +214,7 @@ routes/
 ```
 
 **Staff:**
+
 ```javascript
 {
   username: "staff",
@@ -217,6 +229,7 @@ routes/
 ### 2. Test Scenarios
 
 #### Test 1: SuperAdmin Access
+
 ```bash
 # Login as SuperAdmin
 curl -X POST http://localhost:5000/auth/login \
@@ -235,6 +248,7 @@ curl -X DELETE http://localhost:5000/api/records/123 \
 ```
 
 #### Test 2: Admin Access
+
 ```bash
 # Login as Admin
 curl -X POST http://localhost:5000/auth/login \
@@ -253,6 +267,7 @@ curl -X POST http://localhost:5000/auth/signup \
 ```
 
 #### Test 3: Staff Access
+
 ```bash
 # Login as Staff
 curl -X POST http://localhost:5000/auth/login \
@@ -277,6 +292,7 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 ### Expected Responses
 
 **Success (200/201):**
+
 ```json
 {
   "success": true,
@@ -285,6 +301,7 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 ```
 
 **Unauthorized (401):**
+
 ```json
 {
   "success": false,
@@ -293,6 +310,7 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 ```
 
 **Forbidden (403):**
+
 ```json
 {
   "success": false,
@@ -308,6 +326,7 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 **Cause:** Missing or invalid JWT token
 
 **Solutions:**
+
 1. Check if `Authorization` header is present
 2. Verify token format: `Bearer <token>`
 3. Check if token has expired
@@ -318,6 +337,7 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 **Cause:** User doesn't have required permission
 
 **Solutions:**
+
 1. Verify user's role in database
 2. Check role IDs match environment variables
 3. Review permission mappings in `permissions.js`
@@ -328,6 +348,7 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 **Cause:** JWT contains valid signature but user doesn't exist
 
 **Solutions:**
+
 1. User may have been deleted
 2. Database connection issue
 3. User ID in token doesn't match database
@@ -335,10 +356,12 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 ### Issue: Role IDs Mismatch
 
 **Symptoms:**
+
 - User can login but has no permissions
 - All requests return 403
 
 **Solution:**
+
 1. Check `.env` file for correct role IDs:
    ```env
    SUPERADMIN_ROLE_ID=32562
@@ -351,10 +374,12 @@ curl -X DELETE http://localhost:5000/api/users/123 \
 ### Issue: JWT Verification Fails
 
 **Symptoms:**
+
 - All requests return 403
 - Token appears valid
 
 **Solution:**
+
 1. Check `ACCESS_TOKEN_SECRET` in `.env`
 2. Restart server after changing `.env`
 3. Clear old tokens and re-login
@@ -366,65 +391,74 @@ Enable debug logs to troubleshoot:
 
 ```javascript
 // In checkPermission.js, logs are already enabled:
-console.warn('[RBAC] Permission denied:', {
+console.warn("[RBAC] Permission denied:", {
   user: req.user.username,
   permission,
   endpoint: req.path,
-  method: req.method
+  method: req.method,
 });
 ```
 
 Check server logs for:
+
 - `[RBAC] Permission denied:` - Permission check failures
 - `[Auth] JWT verification failed:` - Token validation errors
 
 ## Security Best Practices
 
 ### 1. Environment Variables
+
 - Never commit `.env` to version control
 - Use different secrets for development/production
 - Rotate secrets regularly
 
 ### 2. Token Management
+
 - Short expiry for access tokens (24h)
 - Longer expiry for refresh tokens (7d)
 - Implement token blacklisting for logout
 
 ### 3. Password Security
+
 - Use bcrypt with salt rounds ≥ 10
 - Enforce strong password policies
 - Implement rate limiting on login
 
 ### 4. HTTPS
+
 - Always use HTTPS in production
 - Set `secure: true` for cookies
 - Enable HSTS headers
 
 ### 5. Rate Limiting
+
 ```javascript
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 requests
-  message: 'Too many login attempts'
+  message: "Too many login attempts",
 });
 
-router.post('/auth/login', authLimiter, handleLogin);
+router.post("/auth/login", authLimiter, handleLogin);
 ```
 
 ### 6. Audit Logging
+
 All RBAC denials are logged automatically:
+
 ```javascript
-console.warn('[RBAC] Permission denied:', {
+console.warn("[RBAC] Permission denied:", {
   user: req.user.username,
   permission,
   endpoint: req.path,
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });
 ```
 
 Review these logs regularly for:
+
 - Repeated permission denials (potential attacks)
 - Unusual access patterns
 - Role escalation attempts
@@ -434,17 +468,16 @@ Review these logs regularly for:
 If migrating from `verifyRoles` to permission-based RBAC:
 
 ### Before (Role-based):
+
 ```javascript
-router.get('/users', 
-  verifyJWT, 
-  verifyRoles(ROLES.SuperAdmin), 
-  getAllUsers
-);
+router.get("/users", verifyJWT, verifyRoles(ROLES.SuperAdmin), getAllUsers);
 ```
 
 ### After (Permission-based):
+
 ```javascript
-router.get('/users',
+router.get(
+  "/users",
   verifyJWT,
   checkPermission(Permission.VIEW_USERS),
   getAllUsers
@@ -452,6 +485,7 @@ router.get('/users',
 ```
 
 **Benefits:**
+
 - More granular control
 - Easier to add new roles
 - Permission inheritance
@@ -460,6 +494,7 @@ router.get('/users',
 ## Support
 
 For issues or questions:
+
 1. Check troubleshooting section above
 2. Review server logs for `[RBAC]` and `[Auth]` messages
 3. Verify environment variables are set correctly

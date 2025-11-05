@@ -1,8 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const verifyJWT = require('../../middlewares/verifyJWT');
-const { checkPermission } = require('../../middlewares/checkPermission');
-const { Permission } = require('../../middlewares/rbac.utils');
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
 // Import controllers
 const {
@@ -10,12 +10,12 @@ const {
   getAllEstablishments,
   getEstablishmentById,
   updateEstablishment,
-  deleteEstablishment
-} = require('../../controller/establishmentController');
+  deleteEstablishment,
+} = require("../../controller/establishmentController");
 
 // Get all establishments - VIEW_GREEN_PAGES permission required
 router.get(
-  '/',
+  "/",
   verifyJWT,
   checkPermission(Permission.VIEW_GREEN_PAGES),
   getAllEstablishments
@@ -23,7 +23,7 @@ router.get(
 
 // Get establishment by ID - VIEW_GREEN_PAGES permission required
 router.get(
-  '/:id',
+  "/:id",
   verifyJWT,
   checkPermission(Permission.VIEW_GREEN_PAGES),
   getEstablishmentById
@@ -31,7 +31,7 @@ router.get(
 
 // Create establishment - MANAGE_GREEN_PAGES permission required
 router.post(
-  '/',
+  "/",
   verifyJWT,
   checkPermission(Permission.MANAGE_GREEN_PAGES),
   createEstablishment
@@ -39,7 +39,7 @@ router.post(
 
 // Update establishment - MANAGE_GREEN_PAGES permission required
 router.patch(
-  '/:id',
+  "/:id",
   verifyJWT,
   checkPermission(Permission.MANAGE_GREEN_PAGES),
   updateEstablishment
@@ -47,7 +47,7 @@ router.patch(
 
 // Delete establishment - MANAGE_GREEN_PAGES permission required
 router.delete(
-  '/:id',
+  "/:id",
   verifyJWT,
   checkPermission(Permission.MANAGE_GREEN_PAGES),
   deleteEstablishment

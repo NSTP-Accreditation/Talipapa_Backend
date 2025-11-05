@@ -9,6 +9,7 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 ## 📋 Pre-Deployment Checklist
 
 ### 1. Environment Configuration
+
 - [ ] Copy `.env.example` to `.env`
 - [ ] Set strong `ACCESS_TOKEN_SECRET` (minimum 32 characters)
 - [ ] Set strong `REFRESH_TOKEN_SECRET` (minimum 32 characters)
@@ -21,6 +22,7 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 - [ ] Set NODE_ENV to appropriate value
 
 ### 2. Database Setup
+
 - [ ] Database is running and accessible
 - [ ] Create initial SuperAdmin user:
   ```javascript
@@ -35,6 +37,7 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 - [ ] Test database connection
 
 ### 3. Testing Authentication
+
 - [ ] Test SuperAdmin login
 - [ ] Verify JWT token contains role IDs
 - [ ] Check response includes `userData` with `roles` and `rolesKeys`
@@ -42,6 +45,7 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 - [ ] Test logout functionality
 
 ### 4. Testing Permissions - SuperAdmin
+
 - [ ] Can view users (`GET /api/users`)
 - [ ] Can create users (`POST /api/users`)
 - [ ] Can edit users (`PUT /api/users/:id`)
@@ -51,6 +55,7 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 - [ ] Can manage all content
 
 ### 5. Testing Permissions - Admin
+
 - [ ] Can view users (`GET /api/users`)
 - [ ] Can create/edit users
 - [ ] Can manage records
@@ -59,6 +64,7 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 - [ ] **Cannot** edit system settings (should return 403)
 
 ### 6. Testing Permissions - Staff
+
 - [ ] Can view users (`GET /api/users`)
 - [ ] Can view records (`GET /api/records`)
 - [ ] Can view all content
@@ -67,12 +73,14 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 - [ ] **Cannot** delete anything (should return 403)
 
 ### 7. Error Handling
+
 - [ ] Missing token returns 401 with proper message
 - [ ] Invalid token returns 403 with proper message
 - [ ] Insufficient permissions returns 403 with required permission
 - [ ] Expired token returns 403 with proper message
 
 ### 8. Security Logging
+
 - [ ] Permission denials are logged with `[RBAC]` prefix
 - [ ] Logs include username, permission, endpoint, timestamp
 - [ ] Authentication failures are logged
@@ -81,30 +89,36 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 ### 9. Route Protection Verification
 
 #### User Management (`/api/users`)
+
 - [ ] GET requires `view_users`
 - [ ] POST requires `create_users`
 - [ ] PUT requires `edit_users`
 - [ ] DELETE requires `delete_users`
 
 #### Records (`/api/records`)
+
 - [ ] GET requires `view_records`
 - [ ] POST requires `create_records`
 - [ ] PATCH requires `edit_records`
 - [ ] DELETE requires `delete_records`
 
 #### News (`/api/news`)
+
 - [ ] GET requires `view_news`
 - [ ] POST requires `manage_news`
 - [ ] PUT requires `manage_news`
 - [ ] DELETE requires `manage_news`
 
 #### Activity Logs (`/api/logs`)
+
 - [ ] GET requires `view_activity_logs`
 
 #### Admin Management (`/auth/signup`)
+
 - [ ] POST requires SuperAdmin role
 
 ### 10. Code Quality
+
 - [ ] No syntax errors (`npm start` works)
 - [ ] No console errors in logs
 - [ ] All imports are correct
@@ -115,6 +129,7 @@ All backend RBAC implementation tasks have been completed. Use this checklist to
 ## 🚀 Deployment Steps
 
 ### 1. Local Testing
+
 ```bash
 # Install dependencies
 npm install
@@ -128,6 +143,7 @@ npm start
 ```
 
 ### 2. Pre-Production
+
 ```bash
 # Set NODE_ENV=staging
 # Use staging database
@@ -137,6 +153,7 @@ npm start
 ```
 
 ### 3. Production
+
 ```bash
 # Set NODE_ENV=production
 # Use production database
@@ -152,6 +169,7 @@ npm start
 ## 📊 Verification Commands
 
 ### Check Environment Variables
+
 ```bash
 # View RBAC settings (without exposing secrets)
 echo "SuperAdmin ID: $SUPERADMIN_ROLE_ID"
@@ -160,6 +178,7 @@ echo "Staff ID: $STAFF_ROLE_ID"
 ```
 
 ### Test Authentication
+
 ```bash
 # Login and save token
 TOKEN=$(curl -s -X POST http://localhost:5000/auth/login \
@@ -173,6 +192,7 @@ curl -X GET http://localhost:5000/api/users \
 ```
 
 ### Verify JWT Structure
+
 ```bash
 # Decode JWT (without verifying)
 node -e "
@@ -183,6 +203,7 @@ console.log(JSON.stringify(payload, null, 2));
 ```
 
 ### Check Server Logs
+
 ```bash
 # Monitor for RBAC events
 tail -f server.log | grep -E '\[RBAC\]|\[Auth\]'
@@ -193,26 +214,34 @@ tail -f server.log | grep -E '\[RBAC\]|\[Auth\]'
 ## ⚠️ Common Issues & Solutions
 
 ### Issue: "Cannot find module './permissions'"
+
 **Solution:** Ensure all new middleware files are created:
+
 - `middlewares/permissions.js`
 - `middlewares/rbac.utils.js`
 - `middlewares/checkPermission.js`
 
 ### Issue: All requests return 401
-**Solution:** 
+
+**Solution:**
+
 - Check `Authorization` header format: `Bearer <token>`
 - Verify token is valid and not expired
 - Check `ACCESS_TOKEN_SECRET` in `.env`
 
 ### Issue: All requests return 403
+
 **Solution:**
+
 - Verify user exists in database
 - Check user has correct role IDs in `roles` field
 - Verify role IDs match `.env` values
 - Check permission is mapped to user's role
 
 ### Issue: SuperAdmin can't access anything
+
 **Solution:**
+
 - Verify SuperAdmin user has `roles: { SuperAdmin: 32562 }`
 - Check `SUPERADMIN_ROLE_ID=32562` in `.env`
 - Ensure role ID is number, not string
@@ -223,6 +252,7 @@ tail -f server.log | grep -E '\[RBAC\]|\[Auth\]'
 ## 📁 Files Created/Modified
 
 ### New Files (8)
+
 1. ✅ `middlewares/permissions.js`
 2. ✅ `middlewares/rbac.utils.js`
 3. ✅ `middlewares/checkPermission.js`
@@ -233,6 +263,7 @@ tail -f server.log | grep -E '\[RBAC\]|\[Auth\]'
 8. ✅ `IMPLEMENTATION_SUMMARY.md`
 
 ### Modified Files (18)
+
 1. ✅ `middlewares/verifyJWT.js`
 2. ✅ `controller/authController.js`
 3. ✅ `routes/auth.js`
@@ -258,18 +289,21 @@ tail -f server.log | grep -E '\[RBAC\]|\[Auth\]'
 ## 🎓 Next Actions
 
 ### Immediate (Today)
+
 1. [ ] Configure `.env` file
 2. [ ] Start server and verify no errors
 3. [ ] Test SuperAdmin login
 4. [ ] Test one protected endpoint
 
 ### This Week
+
 1. [ ] Create test users for all roles
 2. [ ] Test all major endpoints with each role
 3. [ ] Update frontend to use new user data structure
 4. [ ] Integrate with frontend
 
 ### Before Production
+
 1. [ ] Complete security audit
 2. [ ] Set up monitoring and alerts
 3. [ ] Configure rate limiting

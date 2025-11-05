@@ -10,7 +10,7 @@ const {
 const verifyJWT = require("../../middlewares/verifyJWT");
 const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
-const upload = require('../../middlewares/fileUpload');
+const upload = require("../../middlewares/fileUpload");
 
 // Get all materials - VIEW_INVENTORY permission required
 router.get(
@@ -25,7 +25,7 @@ router.post(
   "/",
   verifyJWT,
   checkPermission(Permission.MANAGE_INVENTORY),
-  upload.single('image'),
+  upload.single("image"),
   createMaterial
 );
 
@@ -42,7 +42,7 @@ router.put(
   "/:id",
   verifyJWT,
   checkPermission(Permission.MANAGE_INVENTORY),
-  upload.single('image'),
+  upload.single("image"),
   updateMaterial
 );
 
@@ -50,7 +50,7 @@ router.patch(
   "/:id",
   verifyJWT,
   checkPermission(Permission.MANAGE_INVENTORY),
-  upload.single('image'),
+  upload.single("image"),
   updateMaterial
 );
 

@@ -15,7 +15,7 @@ const {
   getFarmInventoryBySubCategory,
   getLowStockFarmInventory,
 } = require("../../controller/farmInventoryController");
-const upload = require('../../middlewares/fileUpload');
+const upload = require("../../middlewares/fileUpload");
 
 // Get all farm inventory - VIEW_FARM_INVENTORY permission required
 router.get(

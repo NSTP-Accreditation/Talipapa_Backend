@@ -4,58 +4,58 @@
  */
 const Permission = {
   // User Management
-  VIEW_USERS: 'view_users',
-  CREATE_USERS: 'create_users',
-  EDIT_USERS: 'edit_users',
-  DELETE_USERS: 'delete_users',
-  
+  VIEW_USERS: "view_users",
+  CREATE_USERS: "create_users",
+  EDIT_USERS: "edit_users",
+  DELETE_USERS: "delete_users",
+
   // Records Management
-  VIEW_RECORDS: 'view_records',
-  CREATE_RECORDS: 'create_records',
-  EDIT_RECORDS: 'edit_records',
-  DELETE_RECORDS: 'delete_records',
-  
+  VIEW_RECORDS: "view_records",
+  CREATE_RECORDS: "create_records",
+  EDIT_RECORDS: "edit_records",
+  DELETE_RECORDS: "delete_records",
+
   // Content Management
-  VIEW_CONTENT: 'view_content',
-  EDIT_CONTENT: 'edit_content',
-  DELETE_CONTENT: 'delete_content',
-  
+  VIEW_CONTENT: "view_content",
+  EDIT_CONTENT: "edit_content",
+  DELETE_CONTENT: "delete_content",
+
   // News Management
-  VIEW_NEWS: 'view_news',
-  MANAGE_NEWS: 'manage_news',
-  
+  VIEW_NEWS: "view_news",
+  MANAGE_NEWS: "manage_news",
+
   // Guidelines Management
-  VIEW_GUIDELINES: 'view_guidelines',
-  MANAGE_GUIDELINES: 'manage_guidelines',
-  
+  VIEW_GUIDELINES: "view_guidelines",
+  MANAGE_GUIDELINES: "manage_guidelines",
+
   // Achievements Management
-  VIEW_ACHIEVEMENTS: 'view_achievements',
-  MANAGE_ACHIEVEMENTS: 'manage_achievements',
-  
+  VIEW_ACHIEVEMENTS: "view_achievements",
+  MANAGE_ACHIEVEMENTS: "manage_achievements",
+
   // Inventory Management
-  VIEW_INVENTORY: 'view_inventory',
-  MANAGE_INVENTORY: 'manage_inventory',
-  
+  VIEW_INVENTORY: "view_inventory",
+  MANAGE_INVENTORY: "manage_inventory",
+
   // Farm Inventory Management
-  VIEW_FARM_INVENTORY: 'view_farm_inventory',
-  MANAGE_FARM_INVENTORY: 'manage_farm_inventory',
-  
+  VIEW_FARM_INVENTORY: "view_farm_inventory",
+  MANAGE_FARM_INVENTORY: "manage_farm_inventory",
+
   // Green Pages Management
-  VIEW_GREEN_PAGES: 'view_green_pages',
-  MANAGE_GREEN_PAGES: 'manage_green_pages',
-  
+  VIEW_GREEN_PAGES: "view_green_pages",
+  MANAGE_GREEN_PAGES: "manage_green_pages",
+
   // Trading Management
-  VIEW_TRADING: 'view_trading',
-  MANAGE_TRADING: 'manage_trading',
-  
+  VIEW_TRADING: "view_trading",
+  MANAGE_TRADING: "manage_trading",
+
   // Activity Logs
-  VIEW_ACTIVITY_LOGS: 'view_activity_logs',
-  EXPORT_DATA: 'export_data',
-  
+  VIEW_ACTIVITY_LOGS: "view_activity_logs",
+  EXPORT_DATA: "export_data",
+
   // Settings & Admin Management
-  VIEW_SETTINGS: 'view_settings',
-  EDIT_SETTINGS: 'edit_settings',
-  MANAGE_ADMINS: 'manage_admins',
+  VIEW_SETTINGS: "view_settings",
+  EDIT_SETTINGS: "edit_settings",
+  MANAGE_ADMINS: "manage_admins",
 };
 
 /**
@@ -65,9 +65,9 @@ const Permission = {
 const ROLE_PERMISSIONS = {
   SUPERADMIN: [
     // All permissions
-    ...Object.values(Permission)
+    ...Object.values(Permission),
   ],
-  
+
   ADMIN: [
     // View permissions
     Permission.VIEW_USERS,
@@ -82,7 +82,7 @@ const ROLE_PERMISSIONS = {
     Permission.VIEW_TRADING,
     Permission.VIEW_ACTIVITY_LOGS,
     Permission.VIEW_SETTINGS,
-    
+
     // Management permissions (all except admin management)
     Permission.CREATE_USERS,
     Permission.EDIT_USERS,
@@ -101,7 +101,7 @@ const ROLE_PERMISSIONS = {
     Permission.MANAGE_TRADING,
     Permission.EXPORT_DATA,
   ],
-  
+
   STAFF: [
     // View-only permissions
     Permission.VIEW_USERS,
@@ -116,7 +116,7 @@ const ROLE_PERMISSIONS = {
     Permission.VIEW_TRADING,
     Permission.VIEW_ACTIVITY_LOGS,
     Permission.VIEW_SETTINGS,
-  ]
+  ],
 };
 
 module.exports = { Permission, ROLE_PERMISSIONS };
