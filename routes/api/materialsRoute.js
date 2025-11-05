@@ -8,24 +8,58 @@ const {
   deleteAllMaterial,
 } = require("../../controller/materialController");
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const upload = require('../../middlewares/fileUpload');
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
+const upload = require("../../middlewares/fileUpload");
 
-router.get("/", getMaterials);
+// Get all materials - VIEW_INVENTORY permission required
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_INVENTORY),
+  getMaterials
+);
 
-router
-  .route("/")
-  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
-  .post(upload.single('image'), createMaterial)
-  .delete(deleteAllMaterial);
+// Create material - MANAGE_INVENTORY permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_INVENTORY),
+  upload.single("image"),
+  createMaterial
+);
 
-router
-  .route("/:id")
-  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
-  .put(upload.single('image'), updateMaterial)
-  .patch(upload.single('image'), updateMaterial)
-  .delete(deleteMaterial);
+// Delete all materials - MANAGE_INVENTORY permission required
+router.delete(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_INVENTORY),
+  deleteAllMaterial
+);
 
+// Update material - MANAGE_INVENTORY permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_INVENTORY),
+  upload.single("image"),
+  updateMaterial
+);
+
+router.patch(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_INVENTORY),
+  upload.single("image"),
+  updateMaterial
+);
+
+// Delete material - MANAGE_INVENTORY permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_INVENTORY),
+  deleteMaterial
+);
 
 module.exports = router;

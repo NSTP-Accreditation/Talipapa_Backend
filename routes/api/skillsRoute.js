@@ -8,19 +8,48 @@ const {
 } = require("../../controller/skillsController");
 
 const router = express.Router();
-const verifyJWT = require('../../middlewares/verifyJWT')
-const verifyRoles = require('../../middlewares/verifyRoles')
-const roles = require('../../config/roles');
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
-router.route("")
-.get(getAllSkills)
-.post(verifyJWT, verifyRoles(roles.SuperAdmin), postSkills);
+// Get all skills - VIEW_CONTENT permission required
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_CONTENT),
+  getAllSkills
+);
 
-// POST multiple skills at once. Body should be an array of skill objects or { skills: [...] }
-router.route("/many").post(verifyJWT, verifyRoles(roles.SuperAdmin), postManySkills);
+// Create skill - EDIT_CONTENT permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  postSkills
+);
 
-router.route("/:id")
-.put(verifyJWT, verifyRoles(roles.SuperAdmin), updateSkills)
-.delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteSkills);
+// Create multiple skills - EDIT_CONTENT permission required
+router.post(
+  "/many",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  postManySkills
+);
+
+// Update skill - EDIT_CONTENT permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  updateSkills
+);
+
+// Delete skill - DELETE_CONTENT permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.DELETE_CONTENT),
+  deleteSkills
+);
 
 module.exports = router;

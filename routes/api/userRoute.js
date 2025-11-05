@@ -6,22 +6,25 @@ const {
   handleUpdateAccount,
 } = require("../../controller/userController");
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const ROLES = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
-router.route("").get(verifyJWT, verifyRoles(ROLES.SuperAdmin), getAllUsers);
+// Get all users - VIEW_USERS permission required
+router.get("/", verifyJWT, checkPermission(Permission.VIEW_USERS), getAllUsers);
 
+// Delete user - DELETE_USERS permission required
 router.delete(
   "/:id",
   verifyJWT,
-  verifyRoles(ROLES.SuperAdmin),
+  checkPermission(Permission.DELETE_USERS),
   handleDeleteAccount
 );
 
+// Update user - EDIT_USERS permission required
 router.put(
   "/:id",
   verifyJWT,
-  verifyRoles(ROLES.SuperAdmin),
+  checkPermission(Permission.EDIT_USERS),
   handleUpdateAccount
 );
 

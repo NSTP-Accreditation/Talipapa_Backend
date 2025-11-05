@@ -7,30 +7,90 @@ const {
   getCarouselItems,
   addCarouselItem,
   updateCarouselItem,
-  deleteCarouselItem
+  deleteCarouselItem,
+  reorderCarouselSlides,
 } = require("../../controller/pageContentController");
 
 const router = express.Router();
-const verifyJWT = require('../../middlewares/verifyJWT')
-const verifyRoles = require('../../middlewares/verifyRoles')
-const roles = require('../../config/roles');
-const upload = require('../../middlewares/fileUpload');
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
+const upload = require("../../middlewares/fileUpload");
 
-router.route("")
-  .post(verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), postPageContents);
+// Create page content - EDIT_CONTENT permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  upload.single("image"),
+  postPageContents
+);
 
-// Get page content by id
-router.get("/:id", getPageContent);
+// Get page content by id - VIEW_CONTENT permission required
+router.get(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.VIEW_CONTENT),
+  getPageContent
+);
 
-router.patch("/:id", verifyJWT, verifyRoles(roles.SuperAdmin), updatePageContents);
+// Update page content - EDIT_CONTENT permission required
+router.patch(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  updatePageContents
+);
 
-router.patch("/:id/withImage",verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), updatePageContentsWithImage)
+// Update page content with image - EDIT_CONTENT permission required
+router.patch(
+  "/:id/withImage",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  upload.single("image"),
+  updatePageContentsWithImage
+);
 
+// Get carousel items - VIEW_CONTENT permission required
+router.get(
+  "/:id/carousel",
+  verifyJWT,
+  checkPermission(Permission.VIEW_CONTENT),
+  getCarouselItems
+);
 
-router.get('/:id/carousel', getCarouselItems);
-router.post('/:id/carousel', upload.single('image'), addCarouselItem);
-router.patch('/:id/carousel/:carouselItemId', upload.single('image'), updateCarouselItem);
-router.delete('/:id/carousel/:carouselItemId', deleteCarouselItem);
+// Add carousel item - EDIT_CONTENT permission required
+router.post(
+  "/:id/carousel",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  upload.single("image"),
+  addCarouselItem
+);
 
+// Batch reorder carousel items - EDIT_CONTENT permission required
+router.patch(
+  "/:id/carousel/reorder",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  reorderCarouselSlides
+);
+
+// Update carousel item - EDIT_CONTENT permission required
+router.patch(
+  "/:id/carousel/:carouselItemId",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  upload.single("image"),
+  updateCarouselItem
+);
+
+// Delete carousel item - DELETE_CONTENT permission required
+router.delete(
+  "/:id/carousel/:carouselItemId",
+  verifyJWT,
+  checkPermission(Permission.DELETE_CONTENT),
+  deleteCarouselItem
+);
 
 module.exports = router;

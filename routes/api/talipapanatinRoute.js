@@ -1,43 +1,73 @@
 const express = require("express");
 const router = express.Router();
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
 const {
-    getAllProgram,
-    postProgram,
-    editProgram,
-    deleteProgram,
-    postProgramItem,
-    deleteProgramItem,
-    getProgramByTitle
+  getAllProgram,
+  postProgram,
+  editProgram,
+  deleteProgram,
+  postProgramItem,
+  deleteProgramItem,
+  getProgramByTitle,
 } = require("../../controller/talipapanatinController");
 
-router
-    .route("/")
-    .get(getAllProgram)
-    .post(verifyJWT, verifyRoles(roles.SuperAdmin), postProgram);
+// Get all programs - VIEW_CONTENT permission required
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_CONTENT),
+  getAllProgram
+);
 
-router
-    .route("/:id")
-    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
-    .put(editProgram)
-    .delete(deleteProgram);
+// Create program - EDIT_CONTENT permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  postProgram
+);
 
-router
-    .route("/:id/items")
-    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
-    .post(postProgramItem);
+// Update program - EDIT_CONTENT permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  editProgram
+);
 
-router
-    .route("/:id/items/:itemId")
-    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
-    .delete(deleteProgramItem);
+// Delete program - DELETE_CONTENT permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.DELETE_CONTENT),
+  deleteProgram
+);
 
-router
-    .route("/title/:title")
-    .all(verifyJWT, verifyRoles(roles.SuperAdmin))
-    .get(getProgramByTitle);
+// Add program item - EDIT_CONTENT permission required
+router.post(
+  "/:id/items",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  postProgramItem
+);
+
+// Delete program item - DELETE_CONTENT permission required
+router.delete(
+  "/:id/items/:itemId",
+  verifyJWT,
+  checkPermission(Permission.DELETE_CONTENT),
+  deleteProgramItem
+);
+
+// Get program by title - VIEW_CONTENT permission required
+router.get(
+  "/title/:title",
+  verifyJWT,
+  checkPermission(Permission.VIEW_CONTENT),
+  getProgramByTitle
+);
 
 module.exports = router;
