@@ -14,13 +14,8 @@ const {
   getProgramByTitle,
 } = require("../../controller/talipapanatinController");
 
-// Get all programs - VIEW_CONTENT permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_CONTENT),
-  getAllProgram
-);
+// Get all programs - PUBLIC (no auth required)
+router.get("/", getAllProgram);
 
 // Create program - EDIT_CONTENT permission required
 router.post(
@@ -62,12 +57,7 @@ router.delete(
   deleteProgramItem
 );
 
-// Get program by title - VIEW_CONTENT permission required
-router.get(
-  "/title/:title",
-  verifyJWT,
-  checkPermission(Permission.VIEW_CONTENT),
-  getProgramByTitle
-);
+// Get program by title - PUBLIC (no auth required)
+router.get("/title/:title", getProgramByTitle);
 
 module.exports = router;

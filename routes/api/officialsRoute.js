@@ -13,13 +13,8 @@ const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 const upload = require("../../middlewares/fileUpload");
 
-// Get all officials - VIEW_CONTENT permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_CONTENT),
-  getAllOfficials
-);
+// Get all officials - PUBLIC (no auth required)
+router.get("/", getAllOfficials);
 
 // Create official - EDIT_CONTENT permission required
 router.post(

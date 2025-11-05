@@ -11,13 +11,8 @@ const verifyJWT = require("../../middlewares/verifyJWT");
 const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 
-// Get all guidelines - VIEW_GUIDELINES permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_GUIDELINES),
-  getAllGuideline
-);
+// Get all guidelines - PUBLIC (no auth required)
+router.get("/", getAllGuideline);
 
 // Create guideline - MANAGE_GUIDELINES permission required
 router.post(
@@ -27,13 +22,8 @@ router.post(
   postGuideline
 );
 
-// Get single guideline - VIEW_GUIDELINES permission required
-router.get(
-  "/:id",
-  verifyJWT,
-  checkPermission(Permission.VIEW_GUIDELINES),
-  getSingleGuideline
-);
+// Get single guideline - PUBLIC (no auth required)
+router.get("/:id", getSingleGuideline);
 
 // Update guideline - MANAGE_GUIDELINES permission required
 router.put(

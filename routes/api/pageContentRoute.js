@@ -26,13 +26,8 @@ router.post(
   postPageContents
 );
 
-// Get page content by id - VIEW_CONTENT permission required
-router.get(
-  "/:id",
-  verifyJWT,
-  checkPermission(Permission.VIEW_CONTENT),
-  getPageContent
-);
+// Get page content by id - PUBLIC (no auth required)
+router.get("/:id", getPageContent);
 
 // Update page content - EDIT_CONTENT permission required
 router.patch(
@@ -51,13 +46,8 @@ router.patch(
   updatePageContentsWithImage
 );
 
-// Get carousel items - VIEW_CONTENT permission required
-router.get(
-  "/:id/carousel",
-  verifyJWT,
-  checkPermission(Permission.VIEW_CONTENT),
-  getCarouselItems
-);
+// Get carousel items - PUBLIC (no auth required)
+router.get("/:id/carousel", getCarouselItems);
 
 // Add carousel item - EDIT_CONTENT permission required
 router.post(

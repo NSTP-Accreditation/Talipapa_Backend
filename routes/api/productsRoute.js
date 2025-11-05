@@ -11,13 +11,8 @@ const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 const upload = require("../../middlewares/fileUpload");
 
-// Get all products - VIEW_TRADING permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_TRADING),
-  getProducts
-);
+// Get all products - PUBLIC (no auth required)
+router.get("/", getProducts);
 
 // Create product - MANAGE_TRADING permission required
 router.post(

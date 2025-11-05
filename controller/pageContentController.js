@@ -91,6 +91,7 @@ const updatePageContents = async (request, response) => {
       barangayName,
       barangayHistory,
       barangayDescription,
+      youtubeUrl,
     } = request.body;
 
     const oldContent = await PageContent.findById({ _id: id });
@@ -112,6 +113,7 @@ const updatePageContents = async (request, response) => {
       updateFields.barangayHistory = barangayHistory;
     if (barangayDescription !== undefined)
       updateFields.barangayDescription = barangayDescription;
+    if (youtubeUrl !== undefined) updateFields.youtubeUrl = youtubeUrl;
 
     // Check if at least one field is being updated (besides updatedAt)
     const fieldsToUpdate = Object.keys(updateFields).filter(
@@ -165,6 +167,7 @@ const updatePageContentsWithImage = async (request, response) => {
       barangayName,
       barangayHistory,
       barangayDescription,
+      youtubeUrl,
     } = request.body;
     const imageFile = request.file;
 
@@ -185,6 +188,7 @@ const updatePageContentsWithImage = async (request, response) => {
       updateFields.barangayHistory = barangayHistory;
     if (barangayDescription !== undefined)
       updateFields.barangayDescription = barangayDescription;
+    if (youtubeUrl !== undefined) updateFields.youtubeUrl = youtubeUrl;
 
     if (imageFile) {
       updateFields.image = {

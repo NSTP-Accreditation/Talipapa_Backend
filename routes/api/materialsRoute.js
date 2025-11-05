@@ -12,13 +12,8 @@ const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 const upload = require("../../middlewares/fileUpload");
 
-// Get all materials - VIEW_INVENTORY permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_INVENTORY),
-  getMaterials
-);
+// Get all materials - PUBLIC (no auth required)
+router.get("/", getMaterials);
 
 // Create material - MANAGE_INVENTORY permission required
 router.post(

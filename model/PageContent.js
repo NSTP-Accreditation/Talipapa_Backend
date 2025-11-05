@@ -43,6 +43,10 @@ const pageContentSchema = new Schema(
       type: String,
       required: true,
     },
+    youtubeUrl: {
+      type: String,
+      default: null,
+    },
     image: {
       url: String,
       key: String,

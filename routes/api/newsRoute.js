@@ -10,8 +10,8 @@ const verifyJWT = require("../../middlewares/verifyJWT");
 const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 
-// Get all news - VIEW_NEWS permission required
-router.get("/", verifyJWT, checkPermission(Permission.VIEW_NEWS), getAllNews);
+// Get all news - PUBLIC (no auth required)
+router.get("/", getAllNews);
 
 // Create news - MANAGE_NEWS permission required
 router.post("/", verifyJWT, checkPermission(Permission.MANAGE_NEWS), postNews);

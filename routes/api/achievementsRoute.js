@@ -11,13 +11,8 @@ const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 const upload = require("../../middlewares/fileUpload");
 
-// Get all achievements - VIEW_ACHIEVEMENTS permission required
-router.get(
-  "/",
-  verifyJWT,
-  checkPermission(Permission.VIEW_ACHIEVEMENTS),
-  getAllAchievements
-);
+// Get all achievements - PUBLIC (no auth required)
+router.get("/", getAllAchievements);
 
 // Create achievement - MANAGE_ACHIEVEMENTS permission required
 router.post(
