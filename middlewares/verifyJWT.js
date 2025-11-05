@@ -19,13 +19,28 @@ const verifyJWT = async (request, response, next) => {
 
     const token = authHeader.split(" ")[1];
 
+    // Check if token is empty or undefined
+    if (!token || token === "undefined" || token === "null") {
+      console.warn("[Auth] Empty or invalid token received");
+      return response.status(401).json({
+        success: false,
+        message: "Access token is missing or invalid",
+      });
+    }
+
     // Verify token
     jwt.verify(
       token,
       process.env.ACCESS_TOKEN_SECRET,
       async (error, decoded) => {
         if (error) {
-          console.error("[Auth] JWT verification failed:", error.message);
+          // More detailed error logging
+          console.error("[Auth] JWT verification failed:", {
+            error: error.message,
+            tokenPreview: token?.substring(0, 20) + "...",
+            endpoint: request.path,
+            method: request.method,
+          });
           return response.status(403).json({
             success: false,
             message: "Invalid or expired token",

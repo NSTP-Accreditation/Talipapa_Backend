@@ -8,6 +8,10 @@ const {
 } = require("../controller/authController");
 const verifyJWT = require("../middlewares/verifyJWT");
 const { requireSuperAdmin } = require("../middlewares/checkPermission");
+const { testTokenRoute } = require("../utils/jwtDebug");
+
+// Debug route - REMOVE IN PRODUCTION
+router.post("/debug/test-token", testTokenRoute);
 
 // Admin account creation - SuperAdmin only
 router.post("/signup", verifyJWT, requireSuperAdmin, handleCreateAccount);
