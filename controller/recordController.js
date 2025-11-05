@@ -1,4 +1,5 @@
 const Record = require("../model/Record");
+const Product = require("../model/Products");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
 
@@ -105,11 +106,63 @@ const updateRecord = async (req, res) => {
     gender,
     points,
     materials,
+    product_id,
+    quantity,
   } = req.body;
 
   try {
     if (!record_id || !lastName)
       return res.status(400).json({ error: "Record ID and Last Name are required!" });
+
+    // If this is a product redemption (negative points with product_id and quantity)
+    if (points < 0 && product_id && quantity) {
+      // Verify product exists and has enough stock
+      const product = await Product.findById(product_id);
+      
+      if (!product) {
+        return res.status(404).json({ 
+          error: "Product not found",
+          message: "The product you're trying to redeem doesn't exist" 
+        });
+      }
+
+      if (product.stocks < quantity) {
+        return res.status(400).json({ 
+          error: "Insufficient stock",
+          message: `Only ${product.stocks} unit(s) available. Cannot redeem ${quantity} unit(s).`,
+          availableStock: product.stocks,
+          requestedQuantity: quantity
+        });
+      }
+
+      // Deduct product stock
+      await Product.findByIdAndUpdate(
+        product_id,
+        { 
+          $inc: { stocks: -quantity },
+          updatedAt: new Date()
+        }
+      );
+
+      // Log product stock deduction
+      await createLog({
+        action: LOGCONSTANTS.actions.products.UPDATE_PRODUCT,
+        category: LOGCONSTANTS.categories.INVENTORY,
+        title: "Product Redeemed - Stock Deducted",
+        description: `${quantity} unit(s) of "${product.name}" redeemed by ${record_id}`,
+        performedBy: req.userId,
+        targetType: LOGCONSTANTS.targetTypes.PRODUCT,
+        targetId: product._id.toString(),
+        targetName: product.name,
+        details: {
+          previousStocks: product.stocks,
+          newStocks: product.stocks - quantity,
+          quantityRedeemed: quantity,
+          redeemedBy: record_id,
+          pointsDeducted: Math.abs(points)
+        }
+      });
+    }
 
     // Build dynamic update object
     const updateFields = {
@@ -150,12 +203,18 @@ const updateRecord = async (req, res) => {
       action: LOGCONSTANTS.actions.records.UPDATE_RECORD,
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
       title:
-        points > 0 ? "Points Added to Record" : points < 0 ? "Points Deducted from Record" : "Record Updated",
+        points > 0 
+          ? "Points Added to Record" 
+          : points < 0 
+            ? (product_id ? "Product Redeemed" : "Points Deducted from Record")
+            : "Record Updated",
       description:
         points > 0
           ? `Added ${points} points to ${record_id} with ${materials}`
           : points < 0
-          ? `Deducted ${Math.abs(points)} points from ${record_id}`
+          ? (product_id 
+              ? `${record_id} redeemed product (${quantity} unit${quantity > 1 ? 's' : ''}) for ${Math.abs(points)} points`
+              : `Deducted ${Math.abs(points)} points from ${record_id}`)
           : `Updated record ${record_id}`,
       performedBy: req.userId,
       targetType: LOGCONSTANTS.targetTypes.RECORD,
@@ -173,17 +232,40 @@ const updateRecord = async (req, res) => {
       logPayload.details.pointsAdded = points;
     } else if (points < 0) {
       logPayload.details.pointsDeducted = points;
+      if (product_id && quantity) {
+        logPayload.details.productRedemption = {
+          product_id,
+          quantity,
+          totalPoints: Math.abs(points)
+        };
+      }
     }
 
     await createLog(logPayload);
 
-    res.json({
+    const response = {
+      message: points < 0 && product_id 
+        ? `Product redeemed successfully! ${quantity} unit(s) deducted from inventory.`
+        : points > 0
+          ? "Points added successfully!"
+          : "Record updated successfully!",
       record_id: updatedRecord._id,
       lastName: updatedRecord.lastName,
       updatedFields: updateFields,
       earnedPoints: points || 0,
       currentPoints: updatedRecord.points,
-    });
+    };
+
+    // Add product redemption info to response
+    if (points < 0 && product_id && quantity) {
+      response.productRedemption = {
+        product_id,
+        quantity,
+        stockDeducted: true
+      };
+    }
+
+    res.json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
