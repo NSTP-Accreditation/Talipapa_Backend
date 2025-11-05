@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const carouselSchema = new Schema({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   subTitle: String,
   link: String,
@@ -19,7 +19,7 @@ const carouselSchema = new Schema({
     size: Number,
     mimetype: String,
   },
-})
+});
 
 const pageContentSchema = new Schema(
   {
@@ -56,8 +56,8 @@ const pageContentSchema = new Schema(
     },
     carousel: {
       type: [carouselSchema],
-      default: []
-    }
+      default: [],
+    },
   },
   { timestamps: true }
 );
