@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
 const {
   getAllStaff,
@@ -14,32 +14,60 @@ const {
   getAgeDistribution,
 } = require("../../controller/staffController");
 
+// Get all staff - VIEW_USERS permission required
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_USERS),
+  getAllStaff
+);
 
-router
-  .route("")
-  .all(verifyJWT, verifyRoles(roles.SuperAdmin))
-  .get(getAllStaff)
-  .post(postStaff);
+// Create staff - CREATE_USERS permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.CREATE_USERS),
+  postStaff
+);
 
-router.get('/ageDistribution', getAgeDistribution);
+// Get age distribution - VIEW_USERS permission required
+router.get(
+  '/ageDistribution',
+  verifyJWT,
+  checkPermission(Permission.VIEW_USERS),
+  getAgeDistribution
+);
 
-// Get staff by assigned farm id
-router
-  .route("/farm/:farmId")
-  .get(verifyJWT, verifyRoles(roles.SuperAdmin), getStaffByFarm);
+// Get staff by farm - VIEW_USERS permission required
+router.get(
+  "/farm/:farmId",
+  verifyJWT,
+  checkPermission(Permission.VIEW_USERS),
+  getStaffByFarm
+);
 
-// Get staff by farm and skill (skill id or skill name)
-router
-  .route("/farm/:farmId/skill/:skillIdentifier")
-  .get(
-    verifyJWT,
-    verifyRoles(roles.SuperAdmin),
-    getStaffByFarmAndSkill
-  );
+// Get staff by farm and skill - VIEW_USERS permission required
+router.get(
+  "/farm/:farmId/skill/:skillIdentifier",
+  verifyJWT,
+  checkPermission(Permission.VIEW_USERS),
+  getStaffByFarmAndSkill
+);
 
-router
-  .route("/:id")
-  .put(verifyJWT, verifyRoles(roles.SuperAdmin), updateStaff)
-  .delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteStaff);
+// Update staff - EDIT_USERS permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.EDIT_USERS),
+  updateStaff
+);
+
+// Delete staff - DELETE_USERS permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.DELETE_USERS),
+  deleteStaff
+);
 
 module.exports = router;

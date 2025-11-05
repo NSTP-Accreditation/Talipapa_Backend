@@ -2,18 +2,42 @@ const express = require("express");
 const router = express.Router();
 const { getAllAchievements, postAchievements, updateAchievements, deleteAchievements } = require("../../controller/achievementsController");
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 const upload = require('../../middlewares/fileUpload');
 
-router
-    .route("")
-    .get(getAllAchievements)
-    .post(verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), postAchievements);
+// Get all achievements - VIEW_ACHIEVEMENTS permission required
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_ACHIEVEMENTS),
+  getAllAchievements
+);
 
-router
-  .route("/:id")
-  .patch(verifyJWT, verifyRoles(roles.SuperAdmin), upload.single('image'), updateAchievements)
-  .delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteAchievements);
+// Create achievement - MANAGE_ACHIEVEMENTS permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_ACHIEVEMENTS),
+  upload.single('image'),
+  postAchievements
+);
+
+// Update achievement - MANAGE_ACHIEVEMENTS permission required
+router.patch(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_ACHIEVEMENTS),
+  upload.single('image'),
+  updateAchievements
+);
+
+// Delete achievement - MANAGE_ACHIEVEMENTS permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_ACHIEVEMENTS),
+  deleteAchievements
+);
 
 module.exports = router;

@@ -136,6 +136,9 @@ const handleLogin = async (request, response) => {
       response.json({
         userData: {
           username: foundUser.username,
+          email: foundUser.email,
+          roles: foundUser.roles,
+          rolesKeys: foundUser.rolesKeys || []
         },
         accessToken: accessToken,
       });
@@ -170,6 +173,7 @@ const handleRefreshToken = async (request, response) => {
         const accessToken = jwt.sign(
           {
             userInfo: {
+              _id: foundUser._id,
               username: foundUser.username,
               roles,
             },
@@ -181,6 +185,9 @@ const handleRefreshToken = async (request, response) => {
         return response.json({
           userData: {
             username: foundUser.username,
+            email: foundUser.email,
+            roles: foundUser.roles,
+            rolesKeys: foundUser.rolesKeys || []
           },
           accessToken: accessToken,
         });

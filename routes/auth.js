@@ -1,10 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const { handleLogin, handleCreateAccount, handleRefreshToken, handleLogout } = require('../controller/authController');
+const verifyJWT = require('../middlewares/verifyJWT');
+const { requireSuperAdmin } = require('../middlewares/checkPermission');
 
-router.post('/signup', handleCreateAccount);
+// Admin account creation - SuperAdmin only
+router.post('/signup', verifyJWT, requireSuperAdmin, handleCreateAccount);
+
+// Public routes
 router.post('/login', handleLogin);
 router.post("/refreshToken", handleRefreshToken);
-router.post("/logout", handleLogout);
+
+// Logout - requires authentication
+router.post("/logout", verifyJWT, handleLogout);
 
 module.exports = router
