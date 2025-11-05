@@ -8,6 +8,7 @@ const {
   addCarouselItem,
   updateCarouselItem,
   deleteCarouselItem,
+  reorderCarouselSlides,
 } = require("../../controller/pageContentController");
 
 const router = express.Router();
@@ -65,6 +66,14 @@ router.post(
   checkPermission(Permission.EDIT_CONTENT),
   upload.single("image"),
   addCarouselItem
+);
+
+// Batch reorder carousel items - EDIT_CONTENT permission required
+router.patch(
+  "/:id/carousel/reorder",
+  verifyJWT,
+  checkPermission(Permission.EDIT_CONTENT),
+  reorderCarouselSlides
 );
 
 // Update carousel item - EDIT_CONTENT permission required

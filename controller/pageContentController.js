@@ -451,6 +451,106 @@ const getCarouselItems = async (request, response) => {
   }
 };
 
+/**
+ * Batch reorder carousel slides
+ * @route PATCH /pagecontent/:id/carousel/reorder
+ * @body { slideOrders: [{ slideId: string, order: number }, ...] }
+ */
+const reorderCarouselSlides = async (request, response) => {
+  const { id } = request.params; // pageContent ID
+  const { slideOrders } = request.body;
+  
+  try {
+    // Validate input
+    if (!Array.isArray(slideOrders) || slideOrders.length === 0) {
+      return response.status(400).json({ 
+        message: 'slideOrders must be a non-empty array' 
+      });
+    }
+    
+    // Validate each item has slideId and order
+    const isValid = slideOrders.every(
+      item => item.slideId && typeof item.order === 'number'
+    );
+    
+    if (!isValid) {
+      return response.status(400).json({ 
+        message: 'Each item must have slideId (string) and order (number)' 
+      });
+    }
+    
+    // Find the page content
+    const pageContent = await PageContent.findById(id);
+    
+    if (!pageContent) {
+      return response.status(404).json({ 
+        message: `Page content not found with ID: ${id}` 
+      });
+    }
+    
+    // Validate all slideIds exist in the carousel
+    const existingSlideIds = pageContent.carousel.map(
+      slide => slide._id.toString()
+    );
+    const requestedSlideIds = slideOrders.map(item => item.slideId);
+    
+    const allIdsExist = requestedSlideIds.every(
+      id => existingSlideIds.includes(id)
+    );
+    
+    if (!allIdsExist) {
+      return response.status(400).json({ 
+        message: 'One or more slide IDs do not exist' 
+      });
+    }
+    
+    // Update each slide's order
+    slideOrders.forEach(({ slideId, order }) => {
+      const slide = pageContent.carousel.find(
+        s => s._id.toString() === slideId
+      );
+      if (slide) {
+        slide.order = order;
+      }
+    });
+    
+    // Sort carousel array by order (for consistency)
+    pageContent.carousel.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
+    // Save to database
+    await pageContent.save();
+    
+    // Create audit log
+    await createLog({
+      action: LOGCONSTANTS.actions.pageContents.UPDATE_CAROUSEL_ITEM,
+      category: LOGCONSTANTS.categories.CONTENT_MANAGEMENT,
+      title: "Carousel Items Reordered",
+      description: `${slideOrders.length} carousel items were reordered`,
+      performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.PAGE_CONTENT,
+      targetId: pageContent._id,
+      targetName: pageContent.barangayName,
+      details: {
+        reorderedCount: slideOrders.length,
+      },
+    });
+    
+    // Return success response
+    response.json({ 
+      success: true, 
+      message: 'Slide order updated successfully',
+      carousel: pageContent.carousel 
+    });
+    
+  } catch (error) {
+    console.error('Error reordering carousel slides:', error);
+    response.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+};
+
 module.exports = {
   getPageContent,
   postPageContents,
@@ -459,5 +559,6 @@ module.exports = {
   addCarouselItem,
   updateCarouselItem,
   deleteCarouselItem,
-  getCarouselItems
+  getCarouselItems,
+  reorderCarouselSlides
 };
