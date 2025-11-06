@@ -4,6 +4,7 @@ const {
   getProducts,
   createProduct,
   updateProduct,
+  updateProductStocks,
   deleteProduct,
 } = require("../../controller/productController");
 const verifyJWT = require("../../middlewares/verifyJWT");
@@ -23,13 +24,21 @@ router.post(
   createProduct
 );
 
-// Update product - MANAGE_TRADING permission required
+// Update product with image - MANAGE_TRADING permission required
 router.patch(
   "/:id",
   verifyJWT,
   checkPermission(Permission.MANAGE_TRADING),
   upload.single("image"),
   updateProduct
+);
+
+// Update product stocks only (JSON) - MANAGE_TRADING permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  updateProductStocks
 );
 
 // Delete product - MANAGE_TRADING permission required

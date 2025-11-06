@@ -170,6 +170,80 @@ const updateProduct = async (request, response) => {
   }
 };
 
+const updateProductStocks = async (request, response) => {
+  const { id } = request.params;
+  const { stocks, quantity } = request.body;
+
+  if (!id) {
+    return response.status(400).json({ message: "Product ID is required!" });
+  }
+
+  try {
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return response
+        .status(404)
+        .json({ message: `Product not found with ID: ${id}` });
+    }
+
+    // Determine new stock value
+    let newStocks;
+    if (stocks !== undefined) {
+      // Direct stock update
+      newStocks = Number(stocks);
+    } else if (quantity !== undefined) {
+      // Deduct quantity (for redemptions)
+      newStocks = product.stocks - Number(quantity);
+    } else {
+      return response.status(400).json({ 
+        message: "Either 'stocks' or 'quantity' must be provided" 
+      });
+    }
+
+    // Validate stock value
+    if (isNaN(newStocks) || newStocks < 0) {
+      return response.status(400).json({ 
+        message: "Invalid stock value. Stocks cannot be negative." 
+      });
+    }
+
+    // Update product stocks
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { 
+        stocks: newStocks,
+        updatedAt: new Date()
+      },
+      { new: true }
+    ).lean();
+
+    // Log stock update
+    await createLog({
+      action: LOGCONSTANTS.actions.products.UPDATE_PRODUCT,
+      category: LOGCONSTANTS.categories.INVENTORY,
+      title: "Product Stock Updated",
+      description: `Stock for "${product.name}" updated from ${product.stocks} to ${newStocks}`,
+      performedBy: request.userId,
+      targetType: LOGCONSTANTS.targetTypes.PRODUCT,
+      targetId: updatedProduct._id.toString(),
+      targetName: product.name,
+      details: {
+        previousStocks: product.stocks,
+        newStocks: newStocks,
+        quantityChanged: quantity ? Number(quantity) : product.stocks - newStocks
+      }
+    });
+
+    response.json({ 
+      message: "Product stock updated successfully!",
+      product: updatedProduct
+    });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+};
+
 const deleteProduct = async (request, response) => {
   const { id } = request.params;
 
@@ -207,4 +281,4 @@ const deleteProduct = async (request, response) => {
   }
 };
 
-module.exports = { getProducts, createProduct, updateProduct, deleteProduct };
+module.exports = { getProducts, createProduct, updateProduct, updateProductStocks, deleteProduct };
