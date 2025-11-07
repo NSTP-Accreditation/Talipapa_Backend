@@ -17,7 +17,6 @@ const userSchema = new Schema({
   roles: {
     SuperAdmin: Number,
     Admin: Number,
-    Staff: Number,
   },
   password: {
     type: String,
@@ -35,7 +34,6 @@ userSchema.virtual("rolesKeys").get(function () {
 
   if (this.roles.SuperAdmin) roleKeys.push("SuperAdmin");
   if (this.roles.Admin) roleKeys.push("Admin");
-  if (this.roles.Staff) roleKeys.push("Staff");
 
   return roleKeys;
 });

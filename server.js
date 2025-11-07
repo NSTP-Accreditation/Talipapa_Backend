@@ -27,7 +27,7 @@ app.use(cors(corsConfig));
 app.use("/auth", require("./routes/auth"));
 
 // ENDPOINTS
-app.use('/users', require('./routes/api/userRoute'));
+app.use("/users", require("./routes/api/userRoute"));
 
 app.use("/news", require("./routes/api/newsRoute"));
 
@@ -49,6 +49,8 @@ app.use("/farms", require("./routes/api/farmRoute"));
 
 app.use("/logs", require("./routes/api/logsRoute"));
 
+app.use("/security", require("./routes/api/securityRoute"));
+
 app.use("/skills", require("./routes/api/skillsRoute"));
 
 app.use("/staff", require("./routes/api/staffRoute"));
@@ -57,8 +59,7 @@ app.use("/talipapanatin", require("./routes/api/talipapanatinRoute"));
 
 app.use("/farm-inventory", require("./routes/api/farmInventoryRoute"));
 
-app.use('/establishment', require('./routes/api/establishmentRoute'));
-
+app.use("/establishment", require("./routes/api/establishmentRoute"));
 
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
