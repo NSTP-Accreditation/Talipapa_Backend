@@ -6,11 +6,9 @@ const { Permission, ROLE_PERMISSIONS } = require("./permissions");
 const getRoleFromId = (roleId) => {
   const SUPERADMIN_ID = parseInt(process.env.SUPERADMIN_ROLE_ID);
   const ADMIN_ID = parseInt(process.env.ADMIN_ROLE_ID);
-  const STAFF_ID = parseInt(process.env.STAFF_ROLE_ID);
 
   if (roleId === SUPERADMIN_ID) return "SUPERADMIN";
   if (roleId === ADMIN_ID) return "ADMIN";
-  if (roleId === STAFF_ID) return "STAFF";
   return null;
 };
 
@@ -22,12 +20,10 @@ const getUserRole = (user) => {
 
   const SUPERADMIN_ID = parseInt(process.env.SUPERADMIN_ROLE_ID);
   const ADMIN_ID = parseInt(process.env.ADMIN_ROLE_ID);
-  const STAFF_ID = parseInt(process.env.STAFF_ROLE_ID);
 
   // Check in priority order
   if (user.roles.SuperAdmin === SUPERADMIN_ID) return "SUPERADMIN";
   if (user.roles.Admin === ADMIN_ID) return "ADMIN";
-  if (user.roles.Staff === STAFF_ID) return "STAFF";
 
   return null;
 };
@@ -78,13 +74,6 @@ const isAdmin = (user) => {
   return getUserRole(user) === "ADMIN";
 };
 
-/**
- * Check if user is Staff
- */
-const isStaff = (user) => {
-  return getUserRole(user) === "STAFF";
-};
-
 module.exports = {
   getUserRole,
   getRoleFromId,
@@ -94,6 +83,5 @@ module.exports = {
   hasAllPermissions,
   isSuperAdmin,
   isAdmin,
-  isStaff,
   Permission,
 };

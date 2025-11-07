@@ -101,22 +101,6 @@ const ROLE_PERMISSIONS = {
     Permission.MANAGE_TRADING,
     Permission.EXPORT_DATA,
   ],
-
-  STAFF: [
-    // View-only permissions
-    Permission.VIEW_USERS,
-    Permission.VIEW_RECORDS,
-    Permission.VIEW_CONTENT,
-    Permission.VIEW_NEWS,
-    Permission.VIEW_GUIDELINES,
-    Permission.VIEW_ACHIEVEMENTS,
-    Permission.VIEW_INVENTORY,
-    Permission.VIEW_FARM_INVENTORY,
-    Permission.VIEW_GREEN_PAGES,
-    Permission.VIEW_TRADING,
-    Permission.VIEW_ACTIVITY_LOGS,
-    Permission.VIEW_SETTINGS,
-  ],
 };
 
 module.exports = { Permission, ROLE_PERMISSIONS };
