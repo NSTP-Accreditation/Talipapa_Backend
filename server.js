@@ -49,6 +49,8 @@ app.use("/farms", require("./routes/api/farmRoute"));
 
 app.use("/logs", require("./routes/api/logsRoute"));
 
+app.use("/security", require("./routes/api/securityRoute"));
+
 app.use("/skills", require("./routes/api/skillsRoute"));
 
 app.use("/staff", require("./routes/api/staffRoute"));

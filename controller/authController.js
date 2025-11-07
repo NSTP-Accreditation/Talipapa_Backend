@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
+const { logSecurityEvent } = require("../utils/securityLogger");
 
 const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, roles, address, password } =
@@ -84,10 +85,13 @@ const handleLogin = async (request, response) => {
       .json({ message: "Username and Password are required!" });
 
   const foundUser = await User.findOne({ username }).exec();
-  if (!foundUser)
+  if (!foundUser) {
+    // Log failed login - user not found
+    await logSecurityEvent('LOGIN_FAILED', request, { reason: 'User not found' });
     return response
       .status(401)
       .json({ message: "Username or Password is incorrect." });
+  }
 
   try {
     const match = await bcrypt.compare(password, foundUser.password);
@@ -122,7 +126,10 @@ const handleLogin = async (request, response) => {
         sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
       });
 
-      // Log successful login
+      // Log successful login (security log)
+      await logSecurityEvent('LOGIN_SUCCESS', request);
+
+      // Log successful login (activity log)
       await createLog({
         action: LOGCONSTANTS.actions.user.LOGIN,
         category: LOGCONSTANTS.categories.AUTHENTICATION,
@@ -144,6 +151,8 @@ const handleLogin = async (request, response) => {
         accessToken: accessToken,
       });
     } else {
+      // Log failed login - incorrect password
+      await logSecurityEvent('LOGIN_FAILED', request, { reason: 'Invalid password' });
       response
         .status(401)
         .json({ message: "Username or Password is incorrect." });
