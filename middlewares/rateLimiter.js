@@ -1,6 +1,10 @@
 const rateLimit = require("express-rate-limit");
 // IPv6-safe helper for extracting IPs from the request
 const { ipKeyGenerator } = require("express-rate-limit");
+const {
+  getIdentifier,
+  incrementFailedAttempt,
+} = require("../utils/lockoutStore");
 
 /**
  * Login Rate Limiter
@@ -28,13 +32,26 @@ const loginRateLimiter = rateLimit({
   legacyHeaders: false, // Disable X-RateLimit-* headers
 
   // Custom handler for when limit is exceeded
-  handler: (req, res) => {
-    const ip = req.ip || req.connection.remoteAddress;
+  handler: async (req, res) => {
     const username = req.body?.username || "unknown";
+    const ip = ipKeyGenerator(req) || req.ip || req.connection.remoteAddress;
 
     console.error(
       `[SECURITY] Rate limit exceeded for IP: ${ip}, Username: ${username}`
     );
+
+    // Record lockout in persistent store
+    try {
+      const identifier = getIdentifier(req, username);
+      // mark as locked by ensuring attempts are at max and set lockedUntil
+      await incrementFailedAttempt(identifier, {
+        windowMs: 15 * 60 * 1000,
+        maxAttempts: 5,
+        lockDurationMs: 15 * 60 * 1000,
+      });
+    } catch (e) {
+      console.error("Failed to persist lockout record:", e);
+    }
 
     res.status(429).json({
       error: "Too many login attempts",
@@ -81,8 +98,24 @@ const strictRateLimiter = rateLimit({
   },
 });
 
+/**
+ * Status Check Rate Limiter
+ * Prevents abuse of lockout status endpoint
+ */
+const statusCheckLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // 10 requests per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Too many status check requests",
+    message: "Please wait before checking status again.",
+  },
+});
+
 module.exports = {
   loginRateLimiter,
   apiRateLimiter,
   strictRateLimiter,
+  statusCheckLimiter,
 };

@@ -4,6 +4,11 @@ const jwt = require("jsonwebtoken");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
 const { logSecurityEvent } = require("../utils/securityLogger");
+const {
+  getIdentifier,
+  incrementFailedAttempt,
+  resetAttempts,
+} = require("../utils/lockoutStore");
 
 const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, roles, address, password } =
@@ -90,6 +95,12 @@ const handleLogin = async (request, response) => {
     await logSecurityEvent("LOGIN_FAILED", request, {
       reason: "User not found",
     });
+    try {
+      const identifier = getIdentifier(request, username);
+      await incrementFailedAttempt(identifier);
+    } catch (err) {
+      console.error("Failed to record lockout attempt:", err);
+    }
     return response
       .status(401)
       .json({ message: "Username or Password is incorrect." });
@@ -131,6 +142,14 @@ const handleLogin = async (request, response) => {
       // Log successful login (security log)
       await logSecurityEvent("LOGIN_SUCCESS", request);
 
+      // Reset any failed-attempt counters for this identifier
+      try {
+        const identifier = getIdentifier(request, username);
+        await resetAttempts(identifier);
+      } catch (err) {
+        console.error("Failed to reset lockout attempts:", err);
+      }
+
       // Log successful login (activity log)
       await createLog({
         action: LOGCONSTANTS.actions.user.LOGIN,
@@ -157,6 +176,12 @@ const handleLogin = async (request, response) => {
       await logSecurityEvent("LOGIN_FAILED", request, {
         reason: "Invalid password",
       });
+      try {
+        const identifier = getIdentifier(request, username);
+        await incrementFailedAttempt(identifier);
+      } catch (err) {
+        console.error("Failed to record lockout attempt:", err);
+      }
       response
         .status(401)
         .json({ message: "Username or Password is incorrect." });
