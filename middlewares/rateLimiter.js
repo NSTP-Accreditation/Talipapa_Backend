@@ -1,4 +1,6 @@
 const rateLimit = require("express-rate-limit");
+// IPv6-safe helper for extracting IPs from the request
+const { ipKeyGenerator } = require("express-rate-limit");
 
 /**
  * Login Rate Limiter
@@ -15,7 +17,8 @@ const loginRateLimiter = rateLimit({
 
   // Custom key generator (IP + username for more granular tracking)
   keyGenerator: (req) => {
-    const ip = req.ip || req.connection.remoteAddress || "unknown";
+    // Use the built-in ipKeyGenerator to ensure IPv6 addresses are handled
+    const ip = ipKeyGenerator(req) || "unknown";
     const username = req.body?.username || "unknown";
     return `${ip}_${username}`;
   },
@@ -41,15 +44,7 @@ const loginRateLimiter = rateLimit({
     });
   },
 
-  // On limit reached (for logging)
-  onLimitReached: (req, res, options) => {
-    const ip = req.ip || req.connection.remoteAddress;
-    const username = req.body?.username || "unknown";
-
-    console.warn(
-      `[SECURITY] Login rate limit reached for ${username} from IP: ${ip}`
-    );
-  },
+  // NOTE: onLimitReached was removed in express-rate-limit v7+; use `handler`
 });
 
 /**

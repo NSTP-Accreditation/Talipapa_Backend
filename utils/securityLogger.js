@@ -32,7 +32,6 @@ const securityLogSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now,
-    index: true,
   },
   metadata: {
     type: Object,
