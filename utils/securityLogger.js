@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 /**
  * Security Log Schema
@@ -9,15 +9,15 @@ const securityLogSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: [
-      'LOGIN_FAILED',
-      'LOGIN_SUCCESS',
-      'LOGOUT',
-      'ACCOUNT_LOCKED',
-      'RATE_LIMIT_EXCEEDED',
-      'INVALID_TOKEN',
-      'ACCOUNT_CREATED',
-      'PASSWORD_CHANGED',
-      'PERMISSION_DENIED',
+      "LOGIN_FAILED",
+      "LOGIN_SUCCESS",
+      "LOGOUT",
+      "ACCOUNT_LOCKED",
+      "RATE_LIMIT_EXCEEDED",
+      "INVALID_TOKEN",
+      "ACCOUNT_CREATED",
+      "PASSWORD_CHANGED",
+      "PERMISSION_DENIED",
     ],
   },
   username: {
@@ -41,9 +41,12 @@ const securityLogSchema = new mongoose.Schema({
 });
 
 // Auto-delete logs older than 90 days
-securityLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
+securityLogSchema.index(
+  { timestamp: 1 },
+  { expireAfterSeconds: 90 * 24 * 60 * 60 }
+);
 
-const SecurityLog = mongoose.model('SecurityLog', securityLogSchema);
+const SecurityLog = mongoose.model("SecurityLog", securityLogSchema);
 
 /**
  * Log a security event
@@ -55,15 +58,19 @@ async function logSecurityEvent(event, req, metadata = {}) {
   try {
     await SecurityLog.create({
       event,
-      username: req.body?.username || req.user?.username || 'unknown',
-      ip: req.ip || req.connection?.remoteAddress || 'unknown',
-      userAgent: req.headers['user-agent'] || 'unknown',
+      username: req.body?.username || req.user?.username || "unknown",
+      ip: req.ip || req.connection?.remoteAddress || "unknown",
+      userAgent: req.headers["user-agent"] || "unknown",
       metadata,
     });
-    
-    console.info(`[SECURITY] ${event} - User: ${req.body?.username || 'unknown'}, IP: ${req.ip}`);
+
+    console.info(
+      `[SECURITY] ${event} - User: ${req.body?.username || "unknown"}, IP: ${
+        req.ip
+      }`
+    );
   } catch (error) {
-    console.error('[SECURITY] Failed to log security event:', error);
+    console.error("[SECURITY] Failed to log security event:", error);
   }
 }
 
@@ -80,7 +87,7 @@ async function getSecurityLogs(filters = {}, limit = 100) {
       .limit(limit)
       .lean();
   } catch (error) {
-    console.error('[SECURITY] Failed to fetch security logs:', error);
+    console.error("[SECURITY] Failed to fetch security logs:", error);
     return [];
   }
 }
@@ -95,13 +102,13 @@ async function getFailedLoginAttempts(username, minutes = 60) {
   try {
     const since = new Date(Date.now() - minutes * 60 * 1000);
     const count = await SecurityLog.countDocuments({
-      event: 'LOGIN_FAILED',
+      event: "LOGIN_FAILED",
       username,
       timestamp: { $gte: since },
     });
     return count;
   } catch (error) {
-    console.error('[SECURITY] Failed to get failed login attempts:', error);
+    console.error("[SECURITY] Failed to get failed login attempts:", error);
     return 0;
   }
 }

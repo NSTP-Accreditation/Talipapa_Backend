@@ -87,7 +87,9 @@ const handleLogin = async (request, response) => {
   const foundUser = await User.findOne({ username }).exec();
   if (!foundUser) {
     // Log failed login - user not found
-    await logSecurityEvent('LOGIN_FAILED', request, { reason: 'User not found' });
+    await logSecurityEvent("LOGIN_FAILED", request, {
+      reason: "User not found",
+    });
     return response
       .status(401)
       .json({ message: "Username or Password is incorrect." });
@@ -127,7 +129,7 @@ const handleLogin = async (request, response) => {
       });
 
       // Log successful login (security log)
-      await logSecurityEvent('LOGIN_SUCCESS', request);
+      await logSecurityEvent("LOGIN_SUCCESS", request);
 
       // Log successful login (activity log)
       await createLog({
@@ -152,7 +154,9 @@ const handleLogin = async (request, response) => {
       });
     } else {
       // Log failed login - incorrect password
-      await logSecurityEvent('LOGIN_FAILED', request, { reason: 'Invalid password' });
+      await logSecurityEvent("LOGIN_FAILED", request, {
+        reason: "Invalid password",
+      });
       response
         .status(401)
         .json({ message: "Username or Password is incorrect." });

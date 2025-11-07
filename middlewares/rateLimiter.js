@@ -1,4 +1,4 @@
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 /**
  * Login Rate Limiter
@@ -15,8 +15,8 @@ const loginRateLimiter = rateLimit({
 
   // Custom key generator (IP + username for more granular tracking)
   keyGenerator: (req) => {
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
-    const username = req.body?.username || 'unknown';
+    const ip = req.ip || req.connection.remoteAddress || "unknown";
+    const username = req.body?.username || "unknown";
     return `${ip}_${username}`;
   },
 
@@ -27,24 +27,28 @@ const loginRateLimiter = rateLimit({
   // Custom handler for when limit is exceeded
   handler: (req, res) => {
     const ip = req.ip || req.connection.remoteAddress;
-    const username = req.body?.username || 'unknown';
-    
-    console.error(`[SECURITY] Rate limit exceeded for IP: ${ip}, Username: ${username}`);
-    
+    const username = req.body?.username || "unknown";
+
+    console.error(
+      `[SECURITY] Rate limit exceeded for IP: ${ip}, Username: ${username}`
+    );
+
     res.status(429).json({
-      error: 'Too many login attempts',
-      message: 'Account temporarily locked. Please try again in 15 minutes.',
+      error: "Too many login attempts",
+      message: "Account temporarily locked. Please try again in 15 minutes.",
       retryAfter: 15 * 60, // seconds
-      lockedUntil: Date.now() + (15 * 60 * 1000),
+      lockedUntil: Date.now() + 15 * 60 * 1000,
     });
   },
 
   // On limit reached (for logging)
   onLimitReached: (req, res, options) => {
     const ip = req.ip || req.connection.remoteAddress;
-    const username = req.body?.username || 'unknown';
-    
-    console.warn(`[SECURITY] Login rate limit reached for ${username} from IP: ${ip}`);
+    const username = req.body?.username || "unknown";
+
+    console.warn(
+      `[SECURITY] Login rate limit reached for ${username} from IP: ${ip}`
+    );
   },
 });
 
@@ -58,8 +62,8 @@ const apiRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    error: 'Too many requests',
-    message: 'You have exceeded the rate limit. Please try again later.',
+    error: "Too many requests",
+    message: "You have exceeded the rate limit. Please try again later.",
   },
 });
 
@@ -75,8 +79,8 @@ const strictRateLimiter = rateLimit({
   handler: (req, res) => {
     console.error(`[SECURITY] Strict rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json({
-      error: 'Account locked',
-      message: 'Too many failed attempts. Account locked for 1 hour.',
+      error: "Account locked",
+      message: "Too many failed attempts. Account locked for 1 hour.",
       retryAfter: 60 * 60,
     });
   },
