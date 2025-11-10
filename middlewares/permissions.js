@@ -17,6 +17,7 @@ const Permission = {
 
   // Content Management
   VIEW_CONTENT: "view_content",
+  CREATE_CONTENT: "create_content",
   EDIT_CONTENT: "edit_content",
   DELETE_CONTENT: "delete_content",
 
@@ -56,11 +57,28 @@ const Permission = {
   VIEW_SETTINGS: "view_settings",
   EDIT_SETTINGS: "edit_settings",
   MANAGE_ADMINS: "manage_admins",
+  VIEW_ADMINS: "view_admins",
+  CREATE_ADMINS: "create_admins",
+  EDIT_ADMINS: "edit_admins",
+  DELETE_ADMINS: "delete_admins",
+
+  // Reports & Dashboard
+  VIEW_REPORTS: "view_reports",
 };
 
 /**
  * Role to Permission Mapping
  * IMPORTANT: Must match frontend ROLE_PERMISSIONS exactly
+ *
+ * ADMIN RESTRICTION (Updated Nov 2025):
+ * Admin users can ONLY access Home Editables section:
+ * - Page Content (About Us, Carousel, Talipapa Natin)
+ * - Guidelines
+ * - News
+ * - Achievements
+ * - Dashboard/Reports (view only)
+ *
+ * All other features restricted to SuperAdmin only.
  */
 const ROLE_PERMISSIONS = {
   SUPERADMIN: [
@@ -69,37 +87,39 @@ const ROLE_PERMISSIONS = {
   ],
 
   ADMIN: [
-    // View permissions
-    Permission.VIEW_USERS,
-    Permission.VIEW_RECORDS,
+    // ONLY Home Editables permissions
+    // Content Management (About Us, Carousel, Talipapa Natin)
     Permission.VIEW_CONTENT,
-    Permission.VIEW_NEWS,
-    Permission.VIEW_GUIDELINES,
-    Permission.VIEW_ACHIEVEMENTS,
-    Permission.VIEW_INVENTORY,
-    Permission.VIEW_FARM_INVENTORY,
-    Permission.VIEW_GREEN_PAGES,
-    Permission.VIEW_TRADING,
-    Permission.VIEW_ACTIVITY_LOGS,
-    Permission.VIEW_SETTINGS,
-
-    // Management permissions (all except admin management)
-    Permission.CREATE_USERS,
-    Permission.EDIT_USERS,
-    Permission.DELETE_USERS,
-    Permission.CREATE_RECORDS,
-    Permission.EDIT_RECORDS,
-    Permission.DELETE_RECORDS,
+    Permission.CREATE_CONTENT,
     Permission.EDIT_CONTENT,
     Permission.DELETE_CONTENT,
-    Permission.MANAGE_NEWS,
+
+    // Guidelines Management
+    Permission.VIEW_GUIDELINES,
     Permission.MANAGE_GUIDELINES,
+
+    // News Management
+    Permission.VIEW_NEWS,
+    Permission.MANAGE_NEWS,
+
+    // Achievements Management
+    Permission.VIEW_ACHIEVEMENTS,
     Permission.MANAGE_ACHIEVEMENTS,
-    Permission.MANAGE_INVENTORY,
-    Permission.MANAGE_FARM_INVENTORY,
-    Permission.MANAGE_GREEN_PAGES,
-    Permission.MANAGE_TRADING,
-    Permission.EXPORT_DATA,
+
+    // Dashboard access (view only, no export)
+    Permission.VIEW_REPORTS,
+
+    // NOTE: Admin CANNOT access:
+    // - User Management (view_users, create_users, edit_users, delete_users)
+    // - Records Management (view_records, create_records, edit_records, delete_records)
+    // - Trading (view_trading, manage_trading)
+    // - Inventory (view_inventory, manage_inventory)
+    // - Farm Inventory (view_farm_inventory, manage_farm_inventory)
+    // - Green Pages (view_green_pages, manage_green_pages)
+    // - Activity Logs (view_activity_logs)
+    // - Settings (view_settings, edit_settings)
+    // - Admin Management (manage_admins, view_admins, etc.)
+    // - Data Export (export_data)
   ],
 };
 

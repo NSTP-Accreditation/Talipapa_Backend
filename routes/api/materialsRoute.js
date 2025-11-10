@@ -15,28 +15,28 @@ const upload = require("../../middlewares/fileUpload");
 // Get all materials - PUBLIC (no auth required)
 router.get("/", getMaterials);
 
-// Create material - MANAGE_INVENTORY permission required
+// Create material - MANAGE_TRADING permission required (Materials are part of Trading section)
 router.post(
   "/",
   verifyJWT,
-  checkPermission(Permission.MANAGE_INVENTORY),
+  checkPermission(Permission.MANAGE_TRADING),
   upload.single("image"),
   createMaterial
 );
 
-// Delete all materials - MANAGE_INVENTORY permission required
+// Delete all materials - MANAGE_TRADING permission required
 router.delete(
   "/",
   verifyJWT,
-  checkPermission(Permission.MANAGE_INVENTORY),
+  checkPermission(Permission.MANAGE_TRADING),
   deleteAllMaterial
 );
 
-// Update material - MANAGE_INVENTORY permission required
+// Update material - MANAGE_TRADING permission required
 router.put(
   "/:id",
   verifyJWT,
-  checkPermission(Permission.MANAGE_INVENTORY),
+  checkPermission(Permission.MANAGE_TRADING),
   upload.single("image"),
   updateMaterial
 );
@@ -44,16 +44,16 @@ router.put(
 router.patch(
   "/:id",
   verifyJWT,
-  checkPermission(Permission.MANAGE_INVENTORY),
+  checkPermission(Permission.MANAGE_TRADING),
   upload.single("image"),
   updateMaterial
 );
 
-// Delete material - MANAGE_INVENTORY permission required
+// Delete material - MANAGE_TRADING permission required
 router.delete(
   "/:id",
   verifyJWT,
-  checkPermission(Permission.MANAGE_INVENTORY),
+  checkPermission(Permission.MANAGE_TRADING),
   deleteMaterial
 );
 
