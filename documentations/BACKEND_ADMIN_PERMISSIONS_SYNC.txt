@@ -6,6 +6,8 @@ OVERVIEW:
 The frontend RBAC has been updated to restrict Admin users to ONLY access
 the Home Editables section. SuperAdmin retains full system access.
 
+** UPDATE: Admin users are now also BLOCKED from viewing the Dashboard. **
+
 CHANGES REQUIRED IN BACKEND:
 --------------------------------------------------------------------------------
 
@@ -23,10 +25,11 @@ CHANGES REQUIRED IN BACKEND:
    - manage_news
    - view_achievements
    - manage_achievements
-   - view_reports (for dashboard access only)
    
    Remove these permissions from Admin role:
    
+   - view_reports (Dashboard access - REMOVED)
+   - export_data
    - view_users, create_users, edit_users, delete_users
    - view_records, manage_records
    - view_trading, manage_trading
@@ -35,7 +38,6 @@ CHANGES REQUIRED IN BACKEND:
    - view_farm_inventory, manage_farm_inventory
    - view_activity_logs
    - view_settings, edit_settings
-   - export_data
 
 
 2. UPDATE API ROUTE PROTECTION (routes/api/*.js)
@@ -77,12 +79,13 @@ CHANGES REQUIRED IN BACKEND:
    After implementing changes, test:
    
    a) Admin Login:
+      - Should be redirected to Guidelines page (first Home Editable)
       - Should see ONLY "Home Editables" menu (with submenu items)
-      - Dashboard should be visible
-      - Should NOT see: Records, Trading, Green Pages, Inventory, 
+      - Should NOT see: Dashboard, Records, Trading, Green Pages, Inventory, 
         Farm Inventory, Activity Logs, Settings
    
    b) Admin Direct URL Access (should be blocked with 403):
+      - /admin/dashboard
       - /admin/records
       - /admin/trading
       - /admin/green-pages
@@ -98,6 +101,7 @@ CHANGES REQUIRED IN BACKEND:
       - GET /api/inventory
       - GET /api/logs
       - GET /api/settings
+      - GET /api/dashboard (if exists)
    
    d) Admin SHOULD Access (200 OK):
       - GET/POST/PUT/DELETE /api/pageContent
@@ -146,8 +150,8 @@ CHANGES REQUIRED IN BACKEND:
        'view_news',
        'manage_news',
        'view_achievements',
-       'manage_achievements',
-       'view_reports'  // Dashboard access only
+       'manage_achievements'
+       // NO dashboard access (view_reports removed)
      ]
    };
 
@@ -189,9 +193,13 @@ FRONTEND CHANGES COMPLETED:
 ================================================================================
 
 ✅ Updated ROLE_PERMISSIONS in src/types/rbac.types.ts
+✅ Removed VIEW_REPORTS permission from Admin (no Dashboard access)
 ✅ MenuBar automatically filters based on permissions
 ✅ Route protection updated in src/App.jsx
-✅ Admin restricted to Home Editables only
+✅ Dashboard route now protected with VIEW_REPORTS permission
+✅ Created AdminRedirect component to redirect Admin to first accessible page
+✅ Admin users redirected to Guidelines (first Home Editable section)
+✅ Admin restricted to Home Editables only (no Dashboard access)
 ✅ SuperAdmin retains full access
 
 STATUS: Frontend changes complete. Backend sync required.

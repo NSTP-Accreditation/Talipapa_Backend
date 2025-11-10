@@ -76,8 +76,8 @@ const Permission = {
  * - Guidelines
  * - News
  * - Achievements
- * - Dashboard/Reports (view only)
  *
+ * Admin users are BLOCKED from Dashboard access.
  * All other features restricted to SuperAdmin only.
  */
 const ROLE_PERMISSIONS = {
@@ -106,10 +106,8 @@ const ROLE_PERMISSIONS = {
     Permission.VIEW_ACHIEVEMENTS,
     Permission.MANAGE_ACHIEVEMENTS,
 
-    // Dashboard access (view only, no export)
-    Permission.VIEW_REPORTS,
-
     // NOTE: Admin CANNOT access:
+    // - Dashboard (view_reports) - BLOCKED
     // - User Management (view_users, create_users, edit_users, delete_users)
     // - Records Management (view_records, create_records, edit_records, delete_records)
     // - Trading (view_trading, manage_trading)
