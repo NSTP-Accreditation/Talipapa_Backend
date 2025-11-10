@@ -1,0 +1,199 @@
+================================================================================
+BACKEND PERMISSION SYNC REQUIRED - ADMIN ROLE RESTRICTION
+================================================================================
+
+OVERVIEW:
+The frontend RBAC has been updated to restrict Admin users to ONLY access
+the Home Editables section. SuperAdmin retains full system access.
+
+CHANGES REQUIRED IN BACKEND:
+--------------------------------------------------------------------------------
+
+1. UPDATE ROLE PERMISSIONS (config/roles.js or equivalent)
+   
+   Admin role should ONLY have these permissions:
+   
+   - view_content
+   - create_content
+   - edit_content
+   - delete_content
+   - view_guidelines
+   - manage_guidelines
+   - view_news
+   - manage_news
+   - view_achievements
+   - manage_achievements
+   - view_reports (for dashboard access only)
+   
+   Remove these permissions from Admin role:
+   
+   - view_users, create_users, edit_users, delete_users
+   - view_records, manage_records
+   - view_trading, manage_trading
+   - view_green_pages, manage_green_pages
+   - view_inventory, manage_inventory
+   - view_farm_inventory, manage_farm_inventory
+   - view_activity_logs
+   - view_settings, edit_settings
+   - export_data
+
+
+2. UPDATE API ROUTE PROTECTION (routes/api/*.js)
+   
+   Ensure these routes are protected with correct permissions:
+   
+   ADMIN CAN ACCESS (Home Editables):
+   - /api/pageContent (About Us, Carousel) - requires view_content/manage_content
+   - /api/guidelines - requires view_guidelines/manage_guidelines
+   - /api/news - requires view_news/manage_news
+   - /api/achievements - requires view_achievements/manage_achievements
+   - /api/talipapanatin (Talipapa Natin) - requires view_content/manage_content
+   
+   ADMIN CANNOT ACCESS (SuperAdmin only):
+   - /api/users - requires view_users/manage_users
+   - /api/records - requires view_records/manage_records
+   - /api/establishments - requires view_records/manage_records
+   - /api/products (Trading) - requires view_trading/manage_trading
+   - /api/materials (Trading) - requires view_trading/manage_trading
+   - /api/skills (Trading) - requires view_trading/manage_trading
+   - /api/inventory - requires view_inventory/manage_inventory
+   - /api/farm-inventory - requires view_farm_inventory/manage_farm_inventory
+   - /api/logs - requires view_activity_logs
+   - /api/settings - requires view_settings/edit_settings
+   - /api/staff - requires view_admins/manage_admins
+
+
+3. UPDATE MIDDLEWARE (middlewares/checkPermission.js)
+   
+   Ensure the checkPermission middleware properly validates:
+   
+   - Admin role ID should only grant Home Editables permissions
+   - SuperAdmin role ID should grant all permissions
+   - Reject API calls from Admin to non-Home-Editable endpoints
+   
+
+4. VERIFICATION STEPS
+   
+   After implementing changes, test:
+   
+   a) Admin Login:
+      - Should see ONLY "Home Editables" menu (with submenu items)
+      - Dashboard should be visible
+      - Should NOT see: Records, Trading, Green Pages, Inventory, 
+        Farm Inventory, Activity Logs, Settings
+   
+   b) Admin Direct URL Access (should be blocked with 403):
+      - /admin/records
+      - /admin/trading
+      - /admin/green-pages
+      - /admin/inventory
+      - /admin/farm-inventory
+      - /admin/activity-logs
+      - /admin/settings
+   
+   c) Admin API Access (should return 403 Forbidden):
+      - GET /api/users
+      - GET /api/records
+      - GET /api/products
+      - GET /api/inventory
+      - GET /api/logs
+      - GET /api/settings
+   
+   d) Admin SHOULD Access (200 OK):
+      - GET/POST/PUT/DELETE /api/pageContent
+      - GET/POST/PUT/DELETE /api/guidelines
+      - GET/POST/PUT/DELETE /api/news
+      - GET/POST/PUT/DELETE /api/achievements
+      - GET/POST/PUT/DELETE /api/talipapanatin
+      - GET /api/officials (for About Us page)
+   
+   e) SuperAdmin:
+      - Should have full access to all routes and API endpoints
+      - No changes to SuperAdmin behavior
+
+
+5. EXAMPLE MIDDLEWARE UPDATE
+
+   In checkPermission.js, update the role-to-permissions mapping:
+
+   const ROLE_PERMISSIONS = {
+     [SUPERADMIN_ROLE_ID]: [
+       // All permissions
+       'view_content', 'create_content', 'edit_content', 'delete_content',
+       'view_guidelines', 'manage_guidelines',
+       'view_news', 'manage_news',
+       'view_achievements', 'manage_achievements',
+       'view_users', 'create_users', 'edit_users', 'delete_users',
+       'view_admins', 'create_admins', 'edit_admins', 'delete_admins',
+       'view_records', 'manage_records',
+       'view_trading', 'manage_trading',
+       'view_inventory', 'manage_inventory',
+       'view_farm_inventory', 'manage_farm_inventory',
+       'view_green_pages', 'manage_green_pages',
+       'view_activity_logs',
+       'view_settings', 'edit_settings',
+       'view_reports', 'export_data'
+     ],
+     
+     [ADMIN_ROLE_ID]: [
+       // ONLY Home Editables permissions
+       'view_content',
+       'create_content',
+       'edit_content',
+       'delete_content',
+       'view_guidelines',
+       'manage_guidelines',
+       'view_news',
+       'manage_news',
+       'view_achievements',
+       'manage_achievements',
+       'view_reports'  // Dashboard access only
+     ]
+   };
+
+
+6. DATABASE UPDATES (if permissions stored in DB)
+   
+   If your system stores permissions in the database, run migration to:
+   
+   - Remove all non-Home-Editable permissions from Admin role
+   - Keep only: content, guidelines, news, achievements, reports permissions
+   - Ensure SuperAdmin retains all permissions
+
+
+7. LOGGING & MONITORING
+   
+   Add security logging for:
+   
+   - Admin attempts to access restricted endpoints
+   - Permission denial events
+   - Role-based access violations
+   
+   This helps identify potential security issues or confused users.
+
+
+================================================================================
+CRITICAL SECURITY NOTE:
+================================================================================
+
+This is a RESTRICTIVE change - Admin users lose access to most system areas.
+Ensure you:
+
+1. Communicate with Admin users about the change
+2. Have SuperAdmin credentials available for full system management
+3. Test thoroughly before deploying to production
+4. Create database backup before making role permission changes
+
+================================================================================
+FRONTEND CHANGES COMPLETED:
+================================================================================
+
+✅ Updated ROLE_PERMISSIONS in src/types/rbac.types.ts
+✅ MenuBar automatically filters based on permissions
+✅ Route protection updated in src/App.jsx
+✅ Admin restricted to Home Editables only
+✅ SuperAdmin retains full access
+
+STATUS: Frontend changes complete. Backend sync required.
+
+================================================================================
