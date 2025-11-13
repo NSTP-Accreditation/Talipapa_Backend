@@ -7,12 +7,16 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const corsConfig = require("./config/corsConfig");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
 
 // This is to use the .env files
 require("dotenv").config();
 
 // Connect to db
 connDB();
+
+// Security middlewares
+app.use(helmet()); // Add security headers
 
 // middlewares
 app.use(express.json());
