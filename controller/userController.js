@@ -3,6 +3,52 @@ const bcrypt = require("bcrypt");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
 
+/**
+ * Validate role limits when updating a user
+ * SuperAdmin: Maximum 2 accounts
+ * Admin: Maximum 1 account
+ */
+const validateRoleLimitsForUpdate = async (userId, newRoles) => {
+  if (!newRoles) return;
+
+  const SUPERADMIN_ID = parseInt(process.env.SUPERADMIN_ROLE_ID || "32562");
+  const ADMIN_ID = parseInt(process.env.ADMIN_ROLE_ID || "92781");
+
+  // Get all users EXCEPT the one being edited
+  const allUsers = await User.find({ _id: { $ne: userId } })
+    .select("roles")
+    .lean();
+
+  let superAdminCount = 0;
+  let adminCount = 0;
+
+  allUsers.forEach((user) => {
+    if (user.roles && user.roles.SuperAdmin === SUPERADMIN_ID) {
+      superAdminCount++;
+    }
+    if (user.roles && user.roles.Admin === ADMIN_ID) {
+      adminCount++;
+    }
+  });
+
+  // Check if updated roles would exceed limits
+  if (newRoles.SuperAdmin === SUPERADMIN_ID && superAdminCount >= 2) {
+    const error = new Error(
+      "Maximum of 2 SuperAdmin accounts allowed. Please remove an existing SuperAdmin first."
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (newRoles.Admin === ADMIN_ID && adminCount >= 1) {
+    const error = new Error(
+      "Maximum of 1 Admin account allowed. Please remove the existing Admin first."
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+};
+
 const getAllUsers = async (request, response) => {
   try {
     const users = await User.find({}).select("-password -refreshToken").exec();
@@ -68,6 +114,11 @@ const handleUpdateAccount = async (request, response) => {
         .status(404)
         .json({ message: `User not found with ID ${id}` });
 
+    // VALIDATE ROLE LIMITS - If roles are being updated
+    if (roles) {
+      await validateRoleLimitsForUpdate(id, roles);
+    }
+
     // Check if username or email already exists (excluding current user)
     if (username && username !== foundUser.username) {
       const existingUser = await User.findOne({ username, _id: { $ne: id } });
@@ -126,7 +177,28 @@ const handleUpdateAccount = async (request, response) => {
 
     response.json({ message: "User updated successfully" });
   } catch (error) {
-    response.status(500).json({ error: error.message });
+    // Log role limit violations
+    if (error.statusCode === 400 && error.message.includes("Maximum")) {
+      console.warn(`[ROLE LIMIT] ${error.message}`, {
+        userId: id,
+        requestedRoles: roles,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Log to security logs if available
+      try {
+        const { logSecurityEvent } = require("../utils/securityLogger");
+        await logSecurityEvent("ROLE_LIMIT_EXCEEDED", request, {
+          userId: id,
+          attemptedRoles: roles,
+          message: error.message,
+        });
+      } catch (logErr) {
+        console.error("Failed to log security event:", logErr.message);
+      }
+    }
+
+    response.status(error.statusCode || 500).json({ error: error.message });
   }
 };
 

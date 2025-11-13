@@ -10,6 +10,50 @@ const {
   resetAttempts,
 } = require("../utils/lockoutStore");
 
+/**
+ * Validate role limits before creating a new user
+ * SuperAdmin: Maximum 2 accounts
+ * Admin: Maximum 1 account
+ */
+const validateRoleLimits = async (roles) => {
+  if (!roles) return;
+
+  const SUPERADMIN_ID = parseInt(process.env.SUPERADMIN_ROLE_ID || "32562");
+  const ADMIN_ID = parseInt(process.env.ADMIN_ROLE_ID || "92781");
+
+  // Count existing users by role
+  const allUsers = await User.find({}).select("roles").lean();
+
+  let superAdminCount = 0;
+  let adminCount = 0;
+
+  allUsers.forEach((user) => {
+    if (user.roles && user.roles.SuperAdmin === SUPERADMIN_ID) {
+      superAdminCount++;
+    }
+    if (user.roles && user.roles.Admin === ADMIN_ID) {
+      adminCount++;
+    }
+  });
+
+  // Check if new user would exceed limits
+  if (roles.SuperAdmin === SUPERADMIN_ID && superAdminCount >= 2) {
+    const error = new Error(
+      "Maximum of 2 SuperAdmin accounts allowed. Please remove an existing SuperAdmin first."
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (roles.Admin === ADMIN_ID && adminCount >= 1) {
+    const error = new Error(
+      "Maximum of 1 Admin account allowed. Please remove the existing Admin first."
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+};
+
 const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, roles, address, password } =
     request.body;
@@ -36,6 +80,9 @@ const handleCreateAccount = async (request, response) => {
   }
 
   try {
+    // VALIDATE ROLE LIMITS - Check before proceeding
+    await validateRoleLimits(roles);
+
     const foundUser = await User.findOne({
       $or: [{ username }, { email }],
     }).lean();
@@ -78,7 +125,20 @@ const handleCreateAccount = async (request, response) => {
       .status(201)
       .json({ message: `User ${newUser.username} created successfully!` });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Log role limit violations
+    if (error.statusCode === 400 && error.message.includes("Maximum")) {
+      console.warn(`[ROLE LIMIT] ${error.message}`, {
+        requestedRoles: roles,
+        timestamp: new Date().toISOString(),
+      });
+
+      await logSecurityEvent("ROLE_LIMIT_EXCEEDED", request, {
+        attemptedRoles: roles,
+        message: error.message,
+      });
+    }
+
+    response.status(error.statusCode || 500).json({ message: error.message });
   }
 };
 
