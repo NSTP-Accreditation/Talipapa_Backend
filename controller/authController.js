@@ -16,10 +16,7 @@ const {
  * Admin: Maximum 1 account
  */
 const validateRoleLimits = async (roles) => {
-  if (!roles) return;
-
-  const SUPERADMIN_ID = parseInt(process.env.SUPERADMIN_ROLE_ID || "32562");
-  const ADMIN_ID = parseInt(process.env.ADMIN_ROLE_ID || "92781");
+  if (!roles) return; // No roles to validate
 
   // Count existing users by role
   const allUsers = await User.find({}).select("roles").lean();
@@ -28,16 +25,16 @@ const validateRoleLimits = async (roles) => {
   let adminCount = 0;
 
   allUsers.forEach((user) => {
-    if (user.roles && user.roles.SuperAdmin === SUPERADMIN_ID) {
+    if (user.roles && user.roles.SuperAdmin) {
       superAdminCount++;
     }
-    if (user.roles && user.roles.Admin === ADMIN_ID) {
+    if (user.roles && user.roles.Admin) {
       adminCount++;
     }
   });
 
   // Check if new user would exceed limits
-  if (roles.SuperAdmin === SUPERADMIN_ID && superAdminCount >= 2) {
+  if (roles.SuperAdmin && superAdminCount >= 2) {
     const error = new Error(
       "Maximum of 2 SuperAdmin accounts allowed. Please remove an existing SuperAdmin first."
     );
@@ -45,7 +42,7 @@ const validateRoleLimits = async (roles) => {
     throw error;
   }
 
-  if (roles.Admin === ADMIN_ID && adminCount >= 1) {
+  if (roles.Admin && adminCount >= 1) {
     const error = new Error(
       "Maximum of 1 Admin account allowed. Please remove the existing Admin first."
     );
@@ -80,7 +77,7 @@ const handleCreateAccount = async (request, response) => {
   }
 
   try {
-    // VALIDATE ROLE LIMITS - Check before proceeding
+    // VALIDATE ROLE LIMITS - Check before user lookup for efficiency
     await validateRoleLimits(roles);
 
     const foundUser = await User.findOne({
@@ -132,6 +129,7 @@ const handleCreateAccount = async (request, response) => {
         timestamp: new Date().toISOString(),
       });
 
+      // Log to security logs
       await logSecurityEvent("ROLE_LIMIT_EXCEEDED", request, {
         attemptedRoles: roles,
         message: error.message,

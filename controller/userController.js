@@ -7,12 +7,11 @@ const { LOGCONSTANTS } = require("../config/constants");
  * Validate role limits when updating a user
  * SuperAdmin: Maximum 2 accounts
  * Admin: Maximum 1 account
+ * @param {string} userId - ID of the user being updated (to exclude from count)
+ * @param {object} newRoles - New roles being assigned
  */
 const validateRoleLimitsForUpdate = async (userId, newRoles) => {
-  if (!newRoles) return;
-
-  const SUPERADMIN_ID = parseInt(process.env.SUPERADMIN_ROLE_ID || "32562");
-  const ADMIN_ID = parseInt(process.env.ADMIN_ROLE_ID || "92781");
+  if (!newRoles) return; // No roles to validate
 
   // Get all users EXCEPT the one being edited
   const allUsers = await User.find({ _id: { $ne: userId } })
@@ -23,16 +22,16 @@ const validateRoleLimitsForUpdate = async (userId, newRoles) => {
   let adminCount = 0;
 
   allUsers.forEach((user) => {
-    if (user.roles && user.roles.SuperAdmin === SUPERADMIN_ID) {
+    if (user.roles && user.roles.SuperAdmin) {
       superAdminCount++;
     }
-    if (user.roles && user.roles.Admin === ADMIN_ID) {
+    if (user.roles && user.roles.Admin) {
       adminCount++;
     }
   });
 
   // Check if updated roles would exceed limits
-  if (newRoles.SuperAdmin === SUPERADMIN_ID && superAdminCount >= 2) {
+  if (newRoles.SuperAdmin && superAdminCount >= 2) {
     const error = new Error(
       "Maximum of 2 SuperAdmin accounts allowed. Please remove an existing SuperAdmin first."
     );
@@ -40,7 +39,7 @@ const validateRoleLimitsForUpdate = async (userId, newRoles) => {
     throw error;
   }
 
-  if (newRoles.Admin === ADMIN_ID && adminCount >= 1) {
+  if (newRoles.Admin && adminCount >= 1) {
     const error = new Error(
       "Maximum of 1 Admin account allowed. Please remove the existing Admin first."
     );
@@ -188,7 +187,7 @@ const handleUpdateAccount = async (request, response) => {
       // Log to security logs if available
       try {
         const { logSecurityEvent } = require("../utils/securityLogger");
-        await logSecurityEvent("ROLE_LIMIT_EXCEEDED", request, {
+        logSecurityEvent("ROLE_LIMIT_EXCEEDED", request, {
           userId: id,
           attemptedRoles: roles,
           message: error.message,

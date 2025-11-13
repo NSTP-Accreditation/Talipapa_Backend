@@ -12,43 +12,43 @@ const verifyJWT = require("../../middlewares/verifyJWT");
 const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 
-// Get all skills - VIEW_CONTENT permission required
+// Get all skills - VIEW_TRADING permission required (Skills are part of Trading section)
 router.get(
   "/",
   verifyJWT,
-  checkPermission(Permission.VIEW_CONTENT),
+  checkPermission(Permission.VIEW_TRADING),
   getAllSkills
 );
 
-// Create skill - EDIT_CONTENT permission required
+// Create skill - MANAGE_TRADING permission required
 router.post(
   "/",
   verifyJWT,
-  checkPermission(Permission.EDIT_CONTENT),
+  checkPermission(Permission.MANAGE_TRADING),
   postSkills
 );
 
-// Create multiple skills - EDIT_CONTENT permission required
+// Create multiple skills - MANAGE_TRADING permission required
 router.post(
   "/many",
   verifyJWT,
-  checkPermission(Permission.EDIT_CONTENT),
+  checkPermission(Permission.MANAGE_TRADING),
   postManySkills
 );
 
-// Update skill - EDIT_CONTENT permission required
+// Update skill - MANAGE_TRADING permission required
 router.put(
   "/:id",
   verifyJWT,
-  checkPermission(Permission.EDIT_CONTENT),
+  checkPermission(Permission.MANAGE_TRADING),
   updateSkills
 );
 
-// Delete skill - DELETE_CONTENT permission required
+// Delete skill - MANAGE_TRADING permission required
 router.delete(
   "/:id",
   verifyJWT,
-  checkPermission(Permission.DELETE_CONTENT),
+  checkPermission(Permission.MANAGE_TRADING),
   deleteSkills
 );
 

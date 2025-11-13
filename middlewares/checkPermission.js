@@ -23,15 +23,38 @@ const checkPermission = (permission) => {
 
       // Check permission
       if (!hasPermission(req.user, permission)) {
-        // Log security event
-        console.warn("[RBAC] Permission denied:", {
+        // Enhanced security logging for permission denials
+        const denialLog = {
+          event: "PERMISSION_DENIED",
           user: req.user.username,
+          userId: req.user._id,
+          role: req.user.roles,
           permission,
-          endpoint: req.path,
+          endpoint: req.originalUrl || req.path,
           method: req.method,
-          ip: req.ip,
+          ip: req.ip || req.connection.remoteAddress,
+          userAgent: req.get("user-agent"),
           timestamp: new Date().toISOString(),
-        });
+        };
+
+        console.warn("[RBAC] Permission denied:", denialLog);
+
+        // Log to security logger if available
+        try {
+          const { logSecurityEvent } = require("../utils/securityLogger");
+          logSecurityEvent("PERMISSION_DENIED", req.user.username, {
+            permission,
+            endpoint: req.originalUrl || req.path,
+            method: req.method,
+            role: req.user.roles,
+          });
+        } catch (err) {
+          // Security logger not critical, just log to console if it fails
+          console.error(
+            "[RBAC] Failed to log to security logger:",
+            err.message
+          );
+        }
 
         return res.status(403).json({
           success: false,
@@ -69,12 +92,37 @@ const checkAnyPermission = (permissions) => {
       }
 
       if (!hasAnyPermission(req.user, permissions)) {
-        console.warn("[RBAC] Permission denied (any):", {
+        // Enhanced security logging for permission denials
+        const denialLog = {
+          event: "PERMISSION_DENIED_ANY",
           user: req.user.username,
+          userId: req.user._id,
+          role: req.user.roles,
           requiredAny: permissions,
-          endpoint: req.path,
+          endpoint: req.originalUrl || req.path,
+          method: req.method,
+          ip: req.ip || req.connection.remoteAddress,
+          userAgent: req.get("user-agent"),
           timestamp: new Date().toISOString(),
-        });
+        };
+
+        console.warn("[RBAC] Permission denied (any):", denialLog);
+
+        // Log to security logger if available
+        try {
+          const { logSecurityEvent } = require("../utils/securityLogger");
+          logSecurityEvent("PERMISSION_DENIED", req.user.username, {
+            requiredAny: permissions,
+            endpoint: req.originalUrl || req.path,
+            method: req.method,
+            role: req.user.roles,
+          });
+        } catch (err) {
+          console.error(
+            "[RBAC] Failed to log to security logger:",
+            err.message
+          );
+        }
 
         return res.status(403).json({
           success: false,
@@ -110,11 +158,32 @@ const requireSuperAdmin = (req, res, next) => {
     }
 
     if (!isSuperAdmin(req.user)) {
-      console.warn("[RBAC] SuperAdmin access denied:", {
+      // Enhanced security logging for SuperAdmin access attempts
+      const denialLog = {
+        event: "SUPERADMIN_ACCESS_DENIED",
         user: req.user.username,
-        endpoint: req.path,
+        userId: req.user._id,
+        role: req.user.roles,
+        endpoint: req.originalUrl || req.path,
+        method: req.method,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get("user-agent"),
         timestamp: new Date().toISOString(),
-      });
+      };
+
+      console.warn("[RBAC] SuperAdmin access denied:", denialLog);
+
+      // Log to security logger if available
+      try {
+        const { logSecurityEvent } = require("../utils/securityLogger");
+        logSecurityEvent("SUPERADMIN_ACCESS_DENIED", req.user.username, {
+          endpoint: req.originalUrl || req.path,
+          method: req.method,
+          role: req.user.roles,
+        });
+      } catch (err) {
+        console.error("[RBAC] Failed to log to security logger:", err.message);
+      }
 
       return res.status(403).json({
         success: false,
