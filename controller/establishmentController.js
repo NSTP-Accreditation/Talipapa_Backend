@@ -1,4 +1,4 @@
-const Establishment = require('../model/Establishment');
+const Establishment = require("../model/Establishment");
 
 const getAllEstablishments = async (request, response) => {
   try {
@@ -12,18 +12,13 @@ const getAllEstablishments = async (request, response) => {
 
 const createEstablishment = async (req, res) => {
   try {
-    const {
-      name,
-      type,
-      ownerName,
-      contactNumber,
-      address
-    } = req.body;
+    const { name, type, ownerName, contactNumber, address } = req.body;
 
-    // Validate required fields     
+    // Validate required fields
     if (!name || !type || !ownerName || !contactNumber || !address) {
       return res.status(400).json({
-        message: "All fields (name, type, ownerName, contactNumber, address) are required"
+        message:
+          "All fields (name, type, ownerName, contactNumber, address) are required",
       });
     }
 
@@ -31,7 +26,7 @@ const createEstablishment = async (req, res) => {
     const existingEstablishment = await Establishment.findOne({ name });
     if (existingEstablishment) {
       return res.status(409).json({
-        message: "Establishment with this name already exists"
+        message: "Establishment with this name already exists",
       });
     }
 
@@ -40,48 +35,42 @@ const createEstablishment = async (req, res) => {
       type,
       ownerName,
       contactNumber,
-      address
+      address,
     });
 
     return res.status(201).json({
       message: "Establishment created successfully",
-      data: establishment
+      data: establishment,
     });
-
   } catch (error) {
     return res.status(500).json({
-      error: error.message
+      error: error.message,
     });
   }
 };
-
 
 const getEstablishmentById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        message: "Invalid establishment ID"
-      });
-    }
+    // For establishments the _id is a string in the format `BTE-XXXX`.
+    // Do not validate as an ObjectId here; let findById handle missing records.
 
     const establishment = await Establishment.findById(id);
 
     if (!establishment) {
       return res.status(404).json({
-        message: "Establishment not found"
+        message: "Establishment not found",
       });
     }
 
     return res.status(200).json({
       message: "Establishment retrieved successfully",
-      data: establishment
+      data: establishment,
     });
-
   } catch (error) {
     return res.status(500).json({
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -89,37 +78,27 @@ const getEstablishmentById = async (req, res) => {
 const updateEstablishment = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      type,
-      ownerName,
-      contactNumber,
-      address
-    } = req.body;
+    const { name, type, ownerName, contactNumber, address } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        message: "Invalid establishment ID"
-      });
-    }
+    // For establishments the _id is a string like `BTE-0001`. Skip ObjectId validation.
 
     // Check if establishment exists
     const existingEstablishment = await Establishment.findById(id);
     if (!existingEstablishment) {
       return res.status(404).json({
-        message: "Establishment not found"
+        message: "Establishment not found",
       });
     }
 
     // Check if name is being changed and if new name already exists
     if (name && name !== existingEstablishment.name) {
-      const nameExists = await Establishment.findOne({ 
-        name, 
-        _id: { $ne: id } 
+      const nameExists = await Establishment.findOne({
+        name,
+        _id: { $ne: id },
       });
       if (nameExists) {
         return res.status(409).json({
-          message: "Establishment with this name already exists"
+          message: "Establishment with this name already exists",
         });
       }
     }
@@ -131,19 +110,18 @@ const updateEstablishment = async (req, res) => {
         ...(type && { type }),
         ...(ownerName && { ownerName }),
         ...(contactNumber && { contactNumber }),
-        ...(address && { address })
+        ...(address && { address }),
       },
       { new: true, runValidators: true }
     );
 
     return res.status(200).json({
       message: "Establishment updated successfully",
-      data: updatedEstablishment
+      data: updatedEstablishment,
     });
-
   } catch (error) {
     return res.status(500).json({
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -152,31 +130,31 @@ const deleteEstablishment = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        message: "Invalid establishment ID"
-      });
-    }
+    // For establishments use the string id `BTE-XXXX`. Skip ObjectId validation.
 
     const establishment = await Establishment.findByIdAndDelete(id);
 
     if (!establishment) {
       return res.status(404).json({
-        message: "Establishment not found"
+        message: "Establishment not found",
       });
     }
 
     return res.status(200).json({
       message: "Establishment deleted successfully",
-      data: establishment
+      data: establishment,
     });
-
   } catch (error) {
     return res.status(500).json({
-      error: error.message
+      error: error.message,
     });
   }
 };
 
-
-module.exports = { getAllEstablishments, createEstablishment, updateEstablishment, deleteEstablishment, getEstablishmentById }
+module.exports = {
+  getAllEstablishments,
+  createEstablishment,
+  updateEstablishment,
+  deleteEstablishment,
+  getEstablishmentById,
+};
