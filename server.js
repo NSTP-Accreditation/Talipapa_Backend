@@ -65,6 +65,9 @@ app.use("/farm-inventory", require("./routes/api/farmInventoryRoute"));
 
 app.use("/establishment", require("./routes/api/establishmentRoute"));
 
+// Health check for uptime, DB status, and environment
+app.use("/health", require("./routes/api/healthRoute"));
+
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");
 
