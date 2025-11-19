@@ -8,19 +8,48 @@ const {
 } = require("../../controller/skillsController");
 
 const router = express.Router();
-const verifyJWT = require('../../middlewares/verifyJWT')
-const verifyRoles = require('../../middlewares/verifyRoles')
-const roles = require('../../config/roles');
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
-router.route("")
-.get(getAllSkills)
-.post(verifyJWT, verifyRoles(roles.Admin), postSkills);
+// Get all skills - VIEW_TRADING permission required (Skills are part of Trading section)
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_TRADING),
+  getAllSkills
+);
 
-// POST multiple skills at once. Body should be an array of skill objects or { skills: [...] }
-router.route("/many").post(verifyJWT, verifyRoles(roles.Admin), postManySkills);
+// Create skill - MANAGE_TRADING permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  postSkills
+);
 
-router.route("/:id")
-.put(verifyJWT, verifyRoles(roles.Admin), updateSkills)
-.delete(verifyJWT, verifyRoles(roles.Admin), deleteSkills);
+// Create multiple skills - MANAGE_TRADING permission required
+router.post(
+  "/many",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  postManySkills
+);
+
+// Update skill - MANAGE_TRADING permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  updateSkills
+);
+
+// Delete skill - MANAGE_TRADING permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  deleteSkills
+);
 
 module.exports = router;

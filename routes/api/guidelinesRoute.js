@@ -8,20 +8,37 @@ const {
   getSingleGuideline,
 } = require("../../controller/guidelinesController");
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
-// GET all guidelines
-// CREATE a new guideline
-router
-  .route("")
-  .get(getAllGuideline)
-  .post(verifyJWT, verifyRoles(roles.Admin), postGuideline);
+// Get all guidelines - PUBLIC (no auth required)
+router.get("/", getAllGuideline);
 
-router
-  .route("/:id")
-  .get(getSingleGuideline)
-  .put(verifyJWT, verifyRoles(roles.Admin), updateGuideline)
-  .delete(verifyJWT, verifyRoles(roles.Admin), deleteGuideline);
+// Create guideline - MANAGE_GUIDELINES permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_GUIDELINES),
+  postGuideline
+);
+
+// Get single guideline - PUBLIC (no auth required)
+router.get("/:id", getSingleGuideline);
+
+// Update guideline - MANAGE_GUIDELINES permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_GUIDELINES),
+  updateGuideline
+);
+
+// Delete guideline - MANAGE_GUIDELINES permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_GUIDELINES),
+  deleteGuideline
+);
 
 module.exports = router;

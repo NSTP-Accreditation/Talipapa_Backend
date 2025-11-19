@@ -7,9 +7,7 @@ const { deleteFromS3 } = require("../utils/deleteFromS3");
 const getAllFarmInventory = async (req, res) => {
   try {
     const inventory = await FarmInventory.find();
-    if (!inventory || inventory.length === 0) {
-      return res.status(204).json({ message: "No farm inventory items found" });
-    }
+    
     res.json(inventory);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -39,7 +37,7 @@ const getFarmInventoryById = async (req, res) => {
 
 // Create new farm inventory item
 const createFarmInventory = async (req, res) => {
-  const { name, description, mainCategory, subCategory, stocks, unit, farmOrigin } = req.body;
+  const { name, description, subCategory, stocks, unit, farmOrigin } = req.body;
 
   // Validation
   if (!name || !description || !subCategory || !unit) {

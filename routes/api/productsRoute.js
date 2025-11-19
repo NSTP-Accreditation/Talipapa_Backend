@@ -1,18 +1,52 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { getProducts, createProduct, updateProduct, deleteProduct } = require('../../controller/productController');
-const verifyJWT = require('../../middlewares/verifyJWT')
-const roles = require('../../config/roles');
-const verifyRoles = require('../../middlewares/verifyRoles');
-const upload = require('../../middlewares/fileUpload');
+const {
+  getProducts,
+  createProduct,
+  updateProduct,
+  updateProductStocks,
+  deleteProduct,
+} = require("../../controller/productController");
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
+const upload = require("../../middlewares/fileUpload");
 
+// Get all products - PUBLIC (no auth required)
+router.get("/", getProducts);
 
-router.route('/')
-  .get(getProducts)
-  .post(verifyJWT, verifyRoles(roles.Admin), upload.single('image'), createProduct)
+// Create product - MANAGE_TRADING permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  upload.single("image"),
+  createProduct
+);
 
-router.route("/:id")
-  .all(verifyJWT, verifyRoles(roles.Admin))
-  .put(upload.single('image'), updateProduct)
-  .delete(deleteProduct)
+// Update product with image - MANAGE_TRADING permission required
+router.patch(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  upload.single("image"),
+  updateProduct
+);
+
+// Update product stocks only (JSON) - MANAGE_TRADING permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  updateProductStocks
+);
+
+// Delete product - MANAGE_TRADING permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_TRADING),
+  deleteProduct
+);
+
 module.exports = router;

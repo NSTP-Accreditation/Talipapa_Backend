@@ -3,6 +3,53 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { createLog } = require("../utils/logHelper");
 const { LOGCONSTANTS } = require("../config/constants");
+const { logSecurityEvent } = require("../utils/securityLogger");
+const {
+  getIdentifier,
+  incrementFailedAttempt,
+  resetAttempts,
+} = require("../utils/lockoutStore");
+
+/**
+ * Validate role limits before creating a new user
+ * SuperAdmin: Maximum 2 accounts
+ * Admin: Maximum 1 account
+ */
+const validateRoleLimits = async (roles) => {
+  if (!roles) return; // No roles to validate
+
+  // Count existing users by role
+  const allUsers = await User.find({}).select("roles").lean();
+
+  let superAdminCount = 0;
+  let adminCount = 0;
+
+  allUsers.forEach((user) => {
+    if (user.roles && user.roles.SuperAdmin) {
+      superAdminCount++;
+    }
+    if (user.roles && user.roles.Admin) {
+      adminCount++;
+    }
+  });
+
+  // Check if new user would exceed limits
+  if (roles.SuperAdmin && superAdminCount >= 2) {
+    const error = new Error(
+      "Maximum of 2 SuperAdmin accounts allowed. Please remove an existing SuperAdmin first."
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (roles.Admin && adminCount >= 1) {
+    const error = new Error(
+      "Maximum of 1 Admin account allowed. Please remove the existing Admin first."
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+};
 
 const handleCreateAccount = async (request, response) => {
   const { username, email, contactNumber, roles, address, password } =
@@ -10,8 +57,7 @@ const handleCreateAccount = async (request, response) => {
 
   if (!username || !email | !contactNumber || !password)
     return response.status(400).json({
-      message:
-        "Username, Email, Contact Number and Password is required!",
+      message: "Username, Email, Contact Number and Password is required!",
     });
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -24,11 +70,16 @@ const handleCreateAccount = async (request, response) => {
   }
 
   const rolesKeys = Object.keys(roles);
-  if(!Array.isArray(rolesKeys) || rolesKeys.length === 0) {
-    return response.status(400).json({ message: "At least one role is required!"});
+  if (!Array.isArray(rolesKeys) || rolesKeys.length === 0) {
+    return response
+      .status(400)
+      .json({ message: "At least one role is required!" });
   }
 
   try {
+    // VALIDATE ROLE LIMITS - Check before user lookup for efficiency
+    await validateRoleLimits(roles);
+
     const foundUser = await User.findOne({
       $or: [{ username }, { email }],
     }).lean();
@@ -71,7 +122,21 @@ const handleCreateAccount = async (request, response) => {
       .status(201)
       .json({ message: `User ${newUser.username} created successfully!` });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Log role limit violations
+    if (error.statusCode === 400 && error.message.includes("Maximum")) {
+      console.warn(`[ROLE LIMIT] ${error.message}`, {
+        requestedRoles: roles,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Log to security logs
+      await logSecurityEvent("ROLE_LIMIT_EXCEEDED", request, {
+        attemptedRoles: roles,
+        message: error.message,
+      });
+    }
+
+    response.status(error.statusCode || 500).json({ message: error.message });
   }
 };
 
@@ -83,10 +148,21 @@ const handleLogin = async (request, response) => {
       .json({ message: "Username and Password are required!" });
 
   const foundUser = await User.findOne({ username }).exec();
-  if (!foundUser)
+  if (!foundUser) {
+    // Log failed login - user not found
+    await logSecurityEvent("LOGIN_FAILED", request, {
+      reason: "User not found",
+    });
+    try {
+      const identifier = getIdentifier(request, username);
+      await incrementFailedAttempt(identifier);
+    } catch (err) {
+      console.error("Failed to record lockout attempt:", err);
+    }
     return response
       .status(401)
       .json({ message: "Username or Password is incorrect." });
+  }
 
   try {
     const match = await bcrypt.compare(password, foundUser.password);
@@ -121,7 +197,18 @@ const handleLogin = async (request, response) => {
         sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
       });
 
-      // Log successful login
+      // Log successful login (security log)
+      await logSecurityEvent("LOGIN_SUCCESS", request);
+
+      // Reset any failed-attempt counters for this identifier
+      try {
+        const identifier = getIdentifier(request, username);
+        await resetAttempts(identifier);
+      } catch (err) {
+        console.error("Failed to reset lockout attempts:", err);
+      }
+
+      // Log successful login (activity log)
       await createLog({
         action: LOGCONSTANTS.actions.user.LOGIN,
         category: LOGCONSTANTS.categories.AUTHENTICATION,
@@ -136,10 +223,23 @@ const handleLogin = async (request, response) => {
       response.json({
         userData: {
           username: foundUser.username,
+          email: foundUser.email,
+          roles: foundUser.roles,
+          rolesKeys: foundUser.rolesKeys || [],
         },
         accessToken: accessToken,
       });
     } else {
+      // Log failed login - incorrect password
+      await logSecurityEvent("LOGIN_FAILED", request, {
+        reason: "Invalid password",
+      });
+      try {
+        const identifier = getIdentifier(request, username);
+        await incrementFailedAttempt(identifier);
+      } catch (err) {
+        console.error("Failed to record lockout attempt:", err);
+      }
       response
         .status(401)
         .json({ message: "Username or Password is incorrect." });
@@ -170,6 +270,7 @@ const handleRefreshToken = async (request, response) => {
         const accessToken = jwt.sign(
           {
             userInfo: {
+              _id: foundUser._id,
               username: foundUser.username,
               roles,
             },
@@ -181,6 +282,9 @@ const handleRefreshToken = async (request, response) => {
         return response.json({
           userData: {
             username: foundUser.username,
+            email: foundUser.email,
+            roles: foundUser.roles,
+            rolesKeys: foundUser.rolesKeys || [],
           },
           accessToken: accessToken,
         });

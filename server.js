@@ -7,12 +7,16 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const corsConfig = require("./config/corsConfig");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
 
 // This is to use the .env files
 require("dotenv").config();
 
 // Connect to db
 connDB();
+
+// Security middlewares
+app.use(helmet()); // Add security headers
 
 // middlewares
 app.use(express.json());
@@ -27,7 +31,7 @@ app.use(cors(corsConfig));
 app.use("/auth", require("./routes/auth"));
 
 // ENDPOINTS
-app.use('/users', require('./routes/api/userRoute'));
+app.use("/users", require("./routes/api/userRoute"));
 
 app.use("/news", require("./routes/api/newsRoute"));
 
@@ -49,6 +53,8 @@ app.use("/farms", require("./routes/api/farmRoute"));
 
 app.use("/logs", require("./routes/api/logsRoute"));
 
+app.use("/security", require("./routes/api/securityRoute"));
+
 app.use("/skills", require("./routes/api/skillsRoute"));
 
 app.use("/staff", require("./routes/api/staffRoute"));
@@ -57,6 +63,10 @@ app.use("/talipapanatin", require("./routes/api/talipapanatinRoute"));
 
 app.use("/farm-inventory", require("./routes/api/farmInventoryRoute"));
 
+app.use("/establishment", require("./routes/api/establishmentRoute"));
+
+// Health check for uptime, DB status, and environment
+app.use("/health", require("./routes/api/healthRoute"));
 
 mongoose.connection.once("open", () => {
   console.log("Connected To DB");

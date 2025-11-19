@@ -9,25 +9,55 @@ const {
   deleteRecord,
 } = require("../../controller/recordController");
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
+// Search records - VIEW_RECORDS permission required
 router.get(
   "/search",
   verifyJWT,
-  verifyRoles(roles.Admin),
+  checkPermission(Permission.VIEW_RECORDS),
   searchRecords
 );
 
-router
-  .route("/")
-  .all(verifyJWT, verifyRoles(roles.Admin))
-  .get(getRecords)
-  .post(createRecord);
+// Get all records - VIEW_RECORDS permission required
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_RECORDS),
+  getRecords
+);
 
-router.route("/:record_id")
-  .get(getSingleRecord)
-  .patch(verifyJWT, verifyRoles(roles.Admin), updateRecord)
-  .delete(verifyJWT, verifyRoles(roles.SuperAdmin), deleteRecord)
+// Create record - CREATE_RECORDS permission required
+router.post(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.CREATE_RECORDS),
+  createRecord
+);
+
+// Get single record - VIEW_RECORDS permission required
+router.get(
+  "/:record_id",
+  verifyJWT,
+  checkPermission(Permission.VIEW_RECORDS),
+  getSingleRecord
+);
+
+// Update record - EDIT_RECORDS permission required
+router.patch(
+  "/:record_id",
+  verifyJWT,
+  checkPermission(Permission.EDIT_RECORDS),
+  updateRecord
+);
+
+// Delete record - DELETE_RECORDS permission required
+router.delete(
+  "/:record_id",
+  verifyJWT,
+  checkPermission(Permission.DELETE_RECORDS),
+  deleteRecord
+);
 
 module.exports = router;

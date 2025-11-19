@@ -1,18 +1,35 @@
 const express = require("express");
-const { getAllNews, postNews, updateNews, deleteNews } = require("../../controller/newsController");
+const {
+  getAllNews,
+  postNews,
+  updateNews,
+  deleteNews,
+} = require("../../controller/newsController");
 const router = express.Router();
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
-router
-  .route("")
-  .get(getAllNews)
-  .post(verifyJWT, verifyRoles(roles.Admin), postNews)
+// Get all news - PUBLIC (no auth required)
+router.get("/", getAllNews);
 
-router
-  .route("/:id")
-  .put(verifyJWT, verifyRoles(roles.Admin), updateNews)
-  .delete(verifyJWT, verifyRoles(roles.Admin), deleteNews);
+// Create news - MANAGE_NEWS permission required
+router.post("/", verifyJWT, checkPermission(Permission.MANAGE_NEWS), postNews);
+
+// Update news - MANAGE_NEWS permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_NEWS),
+  updateNews
+);
+
+// Delete news - MANAGE_NEWS permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.MANAGE_NEWS),
+  deleteNews
+);
 
 module.exports = router;

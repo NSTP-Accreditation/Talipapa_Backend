@@ -2,15 +2,30 @@ const express = require("express");
 const router = express.Router();
 const {
   getAllUsers,
-  handleDeleteAccount
+  handleDeleteAccount,
+  handleUpdateAccount,
 } = require("../../controller/userController");
-const verifyJWT = require('../../middlewares/verifyJWT');
-const verifyRoles = require('../../middlewares/verifyRoles');
-const ROLES = require('../../config/roles');
+const verifyJWT = require("../../middlewares/verifyJWT");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
-router.route("")
-      .get(verifyJWT, verifyRoles(ROLES.Admin), getAllUsers);
-      
-router.delete("/:id", verifyJWT, verifyRoles(ROLES.Admin), handleDeleteAccount);
+// Get all users - VIEW_USERS permission required
+router.get("/", verifyJWT, checkPermission(Permission.VIEW_USERS), getAllUsers);
+
+// Delete user - DELETE_USERS permission required
+router.delete(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.DELETE_USERS),
+  handleDeleteAccount
+);
+
+// Update user - EDIT_USERS permission required
+router.put(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.EDIT_USERS),
+  handleUpdateAccount
+);
 
 module.exports = router;

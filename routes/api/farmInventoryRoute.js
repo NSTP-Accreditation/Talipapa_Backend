@@ -1,11 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const multerS3 = require("multer-s3");
-const s3 = require("../../config/awsConfig");
 const verifyJWT = require("../../middlewares/verifyJWT");
-const verifyRoles = require("../../middlewares/verifyRoles");
-const roles = require("../../config/roles");
+const { checkPermission } = require("../../middlewares/checkPermission");
+const { Permission } = require("../../middlewares/rbac.utils");
 
 const {
   getAllFarmInventory,
@@ -18,68 +15,79 @@ const {
   getFarmInventoryBySubCategory,
   getLowStockFarmInventory,
 } = require("../../controller/farmInventoryController");
+const upload = require("../../middlewares/fileUpload");
 
-// Configure multer for S3 upload
-const upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: process.env.AWS_BUCKET_NAME,
-    acl: "public-read",
-    metadata: function (req, file, cb) {
-      cb(null, { fieldName: file.fieldname });
-    },
-    key: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, `farm-inventory/${uniqueSuffix}-${file.originalname}`);
-    },
-  }),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed!"), false);
-    }
-  },
-});
+// Get all farm inventory - VIEW_FARM_INVENTORY permission required
+router.get(
+  "/",
+  verifyJWT,
+  checkPermission(Permission.VIEW_FARM_INVENTORY),
+  getAllFarmInventory
+);
 
-// Public routes (no authentication required for viewing)
-router.get("/", getAllFarmInventory);
-router.get("/low-stock", getLowStockFarmInventory);
-router.get("/search/:query", searchFarmInventory);
-router.get("/subcategory/:subCategory", getFarmInventoryBySubCategory);
-router.get("/:id", getFarmInventoryById);
+// Get low stock items - VIEW_FARM_INVENTORY permission required
+router.get(
+  "/low-stock",
+  verifyJWT,
+  checkPermission(Permission.VIEW_FARM_INVENTORY),
+  getLowStockFarmInventory
+);
 
-// Protected routes (require authentication and admin role)
+// Search farm inventory - VIEW_FARM_INVENTORY permission required
+router.get(
+  "/search/:query",
+  verifyJWT,
+  checkPermission(Permission.VIEW_FARM_INVENTORY),
+  searchFarmInventory
+);
+
+// Get by subcategory - VIEW_FARM_INVENTORY permission required
+router.get(
+  "/subcategory/:subCategory",
+  verifyJWT,
+  checkPermission(Permission.VIEW_FARM_INVENTORY),
+  getFarmInventoryBySubCategory
+);
+
+// Get single item - VIEW_FARM_INVENTORY permission required
+router.get(
+  "/:id",
+  verifyJWT,
+  checkPermission(Permission.VIEW_FARM_INVENTORY),
+  getFarmInventoryById
+);
+
+// Create farm inventory - MANAGE_FARM_INVENTORY permission required
 router.post(
   "/",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  checkPermission(Permission.MANAGE_FARM_INVENTORY),
   upload.single("image"),
   createFarmInventory
 );
 
-router.put(
+// Update farm inventory - MANAGE_FARM_INVENTORY permission required
+router.patch(
   "/:id",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  checkPermission(Permission.MANAGE_FARM_INVENTORY),
   upload.single("image"),
   updateFarmInventory
 );
 
+// Update stocks - MANAGE_FARM_INVENTORY permission required
 router.patch(
   "/:id/stocks",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  checkPermission(Permission.MANAGE_FARM_INVENTORY),
   updateFarmInventoryStocks
 );
 
+// Delete farm inventory - MANAGE_FARM_INVENTORY permission required
 router.delete(
   "/:id",
   verifyJWT,
-  verifyRoles(roles.Admin, roles.SuperAdmin),
+  checkPermission(Permission.MANAGE_FARM_INVENTORY),
   deleteFarmInventory
 );
 

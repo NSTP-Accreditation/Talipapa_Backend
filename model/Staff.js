@@ -42,11 +42,7 @@ const staffSchema = new Schema({
       type: Schema.Types.ObjectId,
       ref: "Farm",
     },
-  ],
-  time_in_field: {
-    type: String,
-    required: true,
-  }
+  ]
 }, { timestamps: true });
 
 module.exports = mongoose.model("Staff", staffSchema);
