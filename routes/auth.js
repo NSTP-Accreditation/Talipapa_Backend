@@ -34,7 +34,7 @@ router.post("/login", loginRateLimiter, handleLogin);
 router.post("/refreshToken", handleRefreshToken);
 
 // Logout - requires authentication
-router.post("/logout", verifyJWT, handleLogout);
+router.post("/logout", handleLogout);
 
 // Lockout status endpoint for frontend to sync lockout state
 router.get(
