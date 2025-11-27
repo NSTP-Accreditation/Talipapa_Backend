@@ -5,6 +5,7 @@ const {
   createRecord,
   updateRecord,
   getSingleRecord,
+  findRecordByLastName,
   searchRecords,
   deleteRecord,
 } = require("../../controller/recordController");
@@ -34,6 +35,24 @@ router.post(
   verifyJWT,
   checkPermission(Permission.CREATE_RECORDS),
   createRecord
+);
+
+// NEW ROUTES: Find record by lastName with optional record_id
+// These routes should come before /:record_id to handle the new search pattern
+// Route 1: With record_id
+router.get(
+  "/find/:record_id",
+  verifyJWT,
+  checkPermission(Permission.VIEW_RECORDS),
+  findRecordByLastName
+);
+
+// Route 2: Without record_id (lastName only in query params)
+router.get(
+  "/find",
+  verifyJWT,
+  checkPermission(Permission.VIEW_RECORDS),
+  findRecordByLastName
 );
 
 // Get single record - VIEW_RECORDS permission required
