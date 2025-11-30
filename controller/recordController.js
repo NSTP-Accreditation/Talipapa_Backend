@@ -388,10 +388,12 @@ const findRecordByLastName = async (req, res) => {
 
 /**
  * Public version of findRecordByLastName
- * Returns minimal info to avoid leaking sensitive data
+ * SECURITY FIX: When multiple records match, DO NOT return personal information.
+ * Instead, ask user to provide Record ID for disambiguation.
  * - Accepts lastName query param (required)
  * - Accepts optional record_id query param (NOT route param)
- * - Returns only _id, firstName, lastName, and points
+ * - If single match: returns _id, firstName, lastName, and points
+ * - If multiple matches: returns count only and asks for Record ID (NO personal data)
  */
 const findRecordPublicByLastName = async (req, res) => {
   const { lastName, record_id } = req.query;
@@ -430,6 +432,7 @@ const findRecordPublicByLastName = async (req, res) => {
       });
     }
 
+    // Single record found - return it
     if (matchingRecords.length === 1) {
       return res.json({
         ...matchingRecords[0],
@@ -437,17 +440,14 @@ const findRecordPublicByLastName = async (req, res) => {
       });
     }
 
-    // If multiple records, return minimal set and signal disambiguation
+    // SECURITY FIX: Multiple records found - DO NOT return personal information
+    // Just indicate that multiple records exist and ask for Record ID
     return res.status(409).json({
       error: "Multiple records found with the same last name",
-      message: `Found ${matchingRecords.length} records with last name "${lastName}". Please provide a Record ID to select the correct one.`,
+      message: `Multiple people with the last name "${lastName}" were found in our system. Please provide your Record ID along with your last name for specific lookup.`,
       requiresDisambiguation: true,
-      matchingRecords: matchingRecords.map((record) => ({
-        _id: record._id,
-        firstName: record.firstName,
-        lastName: record.lastName,
-        points: record.points,
-      })),
+      count: matchingRecords.length,
+      // DO NOT include matchingRecords array - this was the security issue
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
