@@ -6,43 +6,52 @@ const { LOGCONSTANTS } = require("../config/constants");
 const getRecords = async (req, res) => {
   try {
     const { residentStatus, search } = req.query;
-    
+
     // Build filter object
     const filter = {};
-    
+
     // Filter by resident status
-    if (residentStatus === 'resident') {
+    if (residentStatus === "resident") {
       filter.isResident = true;
-    } else if (residentStatus === 'non-resident') {
+    } else if (residentStatus === "non-resident") {
       filter.isResident = false;
     }
-    
+
     // Search filter
     if (search) {
       filter.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
-        { middleName: { $regex: search, $options: 'i' } }
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { middleName: { $regex: search, $options: "i" } },
       ];
     }
 
     const records = await Record.find(filter).sort({ createdAt: -1 });
-    
-      // Transform records
-    const recordsWithStatus = records.map(record => ({
+
+    // Transform records
+    const recordsWithStatus = records.map((record) => ({
       ...record.toObject(),
-      residentStatus: record.isResident ? 'Resident' : 'Non-Resident'
+      residentStatus: record.isResident ? "Resident" : "Non-Resident",
     }));
 
-    res.json(recordsWithStatus  );
+    res.json(recordsWithStatus);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 const createRecord = async (req, res) => {
-  const { firstName, lastName, middleName, age, gender, isResident, suffix, address, contact_number } =
-    req.body;
+  const {
+    firstName,
+    lastName,
+    middleName,
+    age,
+    gender,
+    isResident,
+    suffix,
+    address,
+    contact_number,
+  } = req.body;
 
   if (!firstName || !lastName || !middleName || !gender)
     return res.status(400).json({ error: "All Fields are Required" });
@@ -112,37 +121,36 @@ const updateRecord = async (req, res) => {
 
   try {
     if (!record_id || !lastName)
-      return res.status(400).json({ error: "Record ID and Last Name are required!" });
+      return res
+        .status(400)
+        .json({ error: "Record ID and Last Name are required!" });
 
     // If this is a product redemption (negative points with product_id and quantity)
     if (points < 0 && product_id && quantity) {
       // Verify product exists and has enough stock
       const product = await Product.findById(product_id);
-      
+
       if (!product) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: "Product not found",
-          message: "The product you're trying to redeem doesn't exist" 
+          message: "The product you're trying to redeem doesn't exist",
         });
       }
 
       if (product.stocks < quantity) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Insufficient stock",
           message: `Only ${product.stocks} unit(s) available. Cannot redeem ${quantity} unit(s).`,
           availableStock: product.stocks,
-          requestedQuantity: quantity
+          requestedQuantity: quantity,
         });
       }
 
       // Deduct product stock
-      await Product.findByIdAndUpdate(
-        product_id,
-        { 
-          $inc: { stocks: -quantity },
-          updatedAt: new Date()
-        }
-      );
+      await Product.findByIdAndUpdate(product_id, {
+        $inc: { stocks: -quantity },
+        updatedAt: new Date(),
+      });
 
       // Log product stock deduction
       await createLog({
@@ -159,8 +167,8 @@ const updateRecord = async (req, res) => {
           newStocks: product.stocks - quantity,
           quantityRedeemed: quantity,
           redeemedBy: record_id,
-          pointsDeducted: Math.abs(points)
-        }
+          pointsDeducted: Math.abs(points),
+        },
       });
     }
 
@@ -174,7 +182,8 @@ const updateRecord = async (req, res) => {
     if (age !== undefined) updateFields.age = age;
     if (gender !== undefined) updateFields.gender = gender;
     if (isResident !== undefined) updateFields.isResident = isResident;
-    if (contact_number !== undefined) updateFields.contact_number = contact_number;
+    if (contact_number !== undefined)
+      updateFields.contact_number = contact_number;
     if (address !== undefined) updateFields.address = address;
     if (materials !== undefined) updateFields.materials = materials;
 
@@ -203,25 +212,32 @@ const updateRecord = async (req, res) => {
       action: LOGCONSTANTS.actions.records.UPDATE_RECORD,
       category: LOGCONSTANTS.categories.RECORD_MANAGEMENT,
       title:
-        points > 0 
-          ? "Points Added to Record" 
-          : points < 0 
-            ? (product_id ? "Product Redeemed" : "Points Deducted from Record")
-            : "Record Updated",
+        points > 0
+          ? "Points Added to Record"
+          : points < 0
+          ? product_id
+            ? "Product Redeemed"
+            : "Points Deducted from Record"
+          : "Record Updated",
       description:
         points > 0
           ? `Added ${points} points to ${record_id} with ${materials}`
           : points < 0
-          ? (product_id 
-              ? `${record_id} redeemed product (${quantity} unit${quantity > 1 ? 's' : ''}) for ${Math.abs(points)} points`
-              : `Deducted ${Math.abs(points)} points from ${record_id}`)
+          ? product_id
+            ? `${record_id} redeemed product (${quantity} unit${
+                quantity > 1 ? "s" : ""
+              }) for ${Math.abs(points)} points`
+            : `Deducted ${Math.abs(points)} points from ${record_id}`
           : `Updated record ${record_id}`,
       performedBy: req.userId,
       targetType: LOGCONSTANTS.targetTypes.RECORD,
       targetId: updatedRecord._id,
       targetName: `${updatedRecord.firstName} ${updatedRecord.lastName}`,
       details: {
-        previousPoints: typeof points === "number" ? updatedRecord.points - points : updatedRecord.points,
+        previousPoints:
+          typeof points === "number"
+            ? updatedRecord.points - points
+            : updatedRecord.points,
         newPoints: updatedRecord.points,
         materials,
         updatedFields: Object.keys(updateFields),
@@ -236,7 +252,7 @@ const updateRecord = async (req, res) => {
         logPayload.details.productRedemption = {
           product_id,
           quantity,
-          totalPoints: Math.abs(points)
+          totalPoints: Math.abs(points),
         };
       }
     }
@@ -244,9 +260,10 @@ const updateRecord = async (req, res) => {
     await createLog(logPayload);
 
     const response = {
-      message: points < 0 && product_id 
-        ? `Product redeemed successfully! ${quantity} unit(s) deducted from inventory.`
-        : points > 0
+      message:
+        points < 0 && product_id
+          ? `Product redeemed successfully! ${quantity} unit(s) deducted from inventory.`
+          : points > 0
           ? "Points added successfully!"
           : "Record updated successfully!",
       record_id: updatedRecord._id,
@@ -261,7 +278,7 @@ const updateRecord = async (req, res) => {
       response.productRedemption = {
         product_id,
         quantity,
-        stockDeducted: true
+        stockDeducted: true,
       };
     }
 
@@ -270,7 +287,6 @@ const updateRecord = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 const getSingleRecord = async (req, res) => {
   const { record_id } = req.params;
@@ -297,6 +313,147 @@ const getSingleRecord = async (req, res) => {
   }
 };
 
+/**
+ * NEW ENDPOINT: Search records by lastName with optional record_id for disambiguation
+ * This endpoint allows searching primarily by lastName, with record_id being optional.
+ * - If only lastName is provided and one record matches: return that record
+ * - If only lastName is provided and multiple records match: return all matches with requiresDisambiguation flag
+ * - If both lastName and record_id are provided: return the specific record (existing behavior)
+ */
+const findRecordByLastName = async (req, res) => {
+  const { record_id } = req.params;
+  const { lastName } = req.query;
+
+  // lastName is required
+  if (!lastName) {
+    return res.status(400).json({
+      error: "Last Name is required!",
+      message: "Please provide a last name to search for records.",
+    });
+  }
+
+  try {
+    // Build the query
+    const query = {
+      lastName: { $regex: `^${lastName}$`, $options: "i" },
+    };
+
+    // If record_id is provided and not empty, add it to the query for exact match
+    if (record_id && record_id.trim() !== "") {
+      query._id = { $regex: `^${record_id}$`, $options: "i" };
+    }
+
+    // Find matching records
+    const matchingRecords = await Record.find(query).lean();
+
+    // No records found
+    if (matchingRecords.length === 0) {
+      return res.status(404).json({
+        error: record_id
+          ? `Record ${record_id}: ${lastName} Not Found!`
+          : `No records found with last name: ${lastName}`,
+        message: record_id
+          ? "Please verify the Record ID and Last Name are correct."
+          : "Please check the spelling of the last name.",
+      });
+    }
+
+    // Exactly one record found - return it directly
+    if (matchingRecords.length === 1) {
+      return res.json({
+        ...matchingRecords[0],
+        requiresDisambiguation: false,
+      });
+    }
+
+    // Multiple records found - return all with disambiguation flag
+    return res.status(409).json({
+      error: "Multiple records found with the same last name",
+      message: `Found ${matchingRecords.length} records with last name "${lastName}". Please provide a Record ID to select the correct one.`,
+      requiresDisambiguation: true,
+      matchingRecords: matchingRecords.map((record) => ({
+        _id: record._id,
+        firstName: record.firstName,
+        lastName: record.lastName,
+        middleName: record.middleName,
+        address: record.address,
+        contact_number: record.contact_number,
+        points: record.points,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Public version of findRecordByLastName
+ * Returns minimal info to avoid leaking sensitive data
+ * - Accepts lastName query param (required)
+ * - optional record_id param
+ * - Returns only _id, firstName, lastName (optional), and points
+ */
+const findRecordPublicByLastName = async (req, res) => {
+  const { record_id } = req.params;
+  const { lastName } = req.query;
+
+  if (!lastName) {
+    return res.status(400).json({
+      error: "Last Name is required!",
+      message: "Please provide a last name to search for records.",
+    });
+  }
+
+  try {
+    // Build the query
+    const query = {
+      lastName: { $regex: `^${lastName}$`, $options: "i" },
+    };
+
+    if (record_id && record_id.trim() !== "") {
+      query._id = { $regex: `^${record_id}$`, $options: "i" };
+    }
+
+    // Return minimal public fields only
+    const matchingRecords = await Record.find(query)
+      .select("_id firstName lastName points")
+      .lean();
+
+    if (matchingRecords.length === 0) {
+      return res.status(404).json({
+        error: record_id
+          ? `Record ${record_id}: ${lastName} Not Found!`
+          : `No records found with last name: ${lastName}`,
+        message: record_id
+          ? "Please verify the Record ID and Last Name are correct."
+          : "Please check the spelling of the last name.",
+      });
+    }
+
+    if (matchingRecords.length === 1) {
+      return res.json({
+        ...matchingRecords[0],
+        requiresDisambiguation: false,
+      });
+    }
+
+    // If multiple records, return minimal set and signal disambiguation
+    return res.status(409).json({
+      error: "Multiple records found with the same last name",
+      message: `Found ${matchingRecords.length} records with last name "${lastName}". Please provide a Record ID to select the correct one.`,
+      requiresDisambiguation: true,
+      matchingRecords: matchingRecords.map((record) => ({
+        _id: record._id,
+        firstName: record.firstName,
+        lastName: record.lastName,
+        points: record.points,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const searchRecords = async (req, res) => {
   const { residentStatus, query } = req.query;
 
@@ -316,13 +473,13 @@ const searchRecords = async (req, res) => {
 
     // Add resident status filter if provided
     if (residentStatus) {
-      if (residentStatus === 'resident') {
+      if (residentStatus === "resident") {
         filter.isResident = true;
-      } else if (residentStatus === 'non-resident') {
+      } else if (residentStatus === "non-resident") {
         filter.isResident = false;
       } else {
-        return res.status(400).json({ 
-          error: "Invalid residentStatus. Use 'resident' or 'non-resident'" 
+        return res.status(400).json({
+          error: "Invalid residentStatus. Use 'resident' or 'non-resident'",
         });
       }
     }
@@ -333,9 +490,9 @@ const searchRecords = async (req, res) => {
       .lean();
 
     // Add residentStatus field to each result
-    const resultsWithStatus = searchResults.map(record => ({
+    const resultsWithStatus = searchResults.map((record) => ({
       ...record,
-      residentStatus: record.isResident ? 'Resident' : 'Non-Resident'
+      residentStatus: record.isResident ? "Resident" : "Non-Resident",
     }));
 
     res.json(resultsWithStatus);
@@ -347,23 +504,29 @@ const searchRecords = async (req, res) => {
 const deleteRecord = async (req, res) => {
   const { record_id } = req.params;
 
-  if(!record_id) return res.status(400).json({ message: "Record ID is required!"});
+  if (!record_id)
+    return res.status(400).json({ message: "Record ID is required!" });
   try {
     const deletedRecord = await Record.findByIdAndDelete(record_id);
-    
-    if(!deletedRecord) return res.status(404).json({ message: "Record not found with ID: " + record_id});
-    
-    res.json({ message: `Record ${record_id} deleted successfully!`});
+
+    if (!deletedRecord)
+      return res
+        .status(404)
+        .json({ message: "Record not found with ID: " + record_id });
+
+    res.json({ message: `Record ${record_id} deleted successfully!` });
   } catch (error) {
     res.status(500).json({ message: error });
   }
-}
+};
 
 module.exports = {
   getRecords,
   createRecord,
   updateRecord,
   getSingleRecord,
+  findRecordByLastName,
+  findRecordPublicByLastName,
   searchRecords,
-  deleteRecord
+  deleteRecord,
 };

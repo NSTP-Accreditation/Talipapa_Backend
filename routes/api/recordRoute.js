@@ -5,12 +5,15 @@ const {
   createRecord,
   updateRecord,
   getSingleRecord,
+  findRecordByLastName,
+  findRecordPublicByLastName,
   searchRecords,
   deleteRecord,
 } = require("../../controller/recordController");
 const verifyJWT = require("../../middlewares/verifyJWT");
 const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
+const { statusCheckLimiter } = require("../../middlewares/rateLimiter");
 
 // Search records - VIEW_RECORDS permission required
 router.get(
@@ -35,6 +38,22 @@ router.post(
   checkPermission(Permission.CREATE_RECORDS),
   createRecord
 );
+
+// NEW ROUTES: Find record by lastName with optional record_id
+// These routes should come before /:record_id to handle the new search pattern
+// Route 1: With record_id
+router.get(
+  "/find/:record_id",
+  verifyJWT,
+  checkPermission(Permission.VIEW_RECORDS),
+  findRecordByLastName
+);
+
+// Route 2: Without record_id (lastName only in query params)
+router.get("/find", verifyJWT, checkPermission(Permission.VIEW_RECORDS), findRecordByLastName);
+
+// Public record lookup for points (no auth). Limited results to avoid leaking PII.
+router.get("/public/find", statusCheckLimiter, findRecordPublicByLastName);
 
 // Get single record - VIEW_RECORDS permission required
 router.get(
