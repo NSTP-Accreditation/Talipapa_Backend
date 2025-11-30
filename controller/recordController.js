@@ -390,12 +390,11 @@ const findRecordByLastName = async (req, res) => {
  * Public version of findRecordByLastName
  * Returns minimal info to avoid leaking sensitive data
  * - Accepts lastName query param (required)
- * - optional record_id param
- * - Returns only _id, firstName, lastName (optional), and points
+ * - Accepts optional record_id query param (NOT route param)
+ * - Returns only _id, firstName, lastName, and points
  */
 const findRecordPublicByLastName = async (req, res) => {
-  const { record_id } = req.params;
-  const { lastName } = req.query;
+  const { lastName, record_id } = req.query;
 
   if (!lastName) {
     return res.status(400).json({
@@ -410,6 +409,7 @@ const findRecordPublicByLastName = async (req, res) => {
       lastName: { $regex: `^${lastName}$`, $options: "i" },
     };
 
+    // If record_id is provided in query params, add it to the query
     if (record_id && record_id.trim() !== "") {
       query._id = { $regex: `^${record_id}$`, $options: "i" };
     }

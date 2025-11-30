@@ -15,6 +15,10 @@ const { checkPermission } = require("../../middlewares/checkPermission");
 const { Permission } = require("../../middlewares/rbac.utils");
 const { statusCheckLimiter } = require("../../middlewares/rateLimiter");
 
+// Public record lookup for points (no auth). Limited results to avoid leaking PII.
+// MUST BE FIRST to prevent route conflicts with parameterized routes
+router.get("/public/find", statusCheckLimiter, findRecordPublicByLastName);
+
 // Search records - VIEW_RECORDS permission required
 router.get(
   "/search",
@@ -50,10 +54,12 @@ router.get(
 );
 
 // Route 2: Without record_id (lastName only in query params)
-router.get("/find", verifyJWT, checkPermission(Permission.VIEW_RECORDS), findRecordByLastName);
-
-// Public record lookup for points (no auth). Limited results to avoid leaking PII.
-router.get("/public/find", statusCheckLimiter, findRecordPublicByLastName);
+router.get(
+  "/find",
+  verifyJWT,
+  checkPermission(Permission.VIEW_RECORDS),
+  findRecordByLastName
+);
 
 // Get single record - VIEW_RECORDS permission required
 router.get(
