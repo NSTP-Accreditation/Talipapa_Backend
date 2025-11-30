@@ -386,6 +386,74 @@ const findRecordByLastName = async (req, res) => {
   }
 };
 
+/**
+ * Public version of findRecordByLastName
+ * Returns minimal info to avoid leaking sensitive data
+ * - Accepts lastName query param (required)
+ * - optional record_id param
+ * - Returns only _id, firstName, lastName (optional), and points
+ */
+const findRecordPublicByLastName = async (req, res) => {
+  const { record_id } = req.params;
+  const { lastName } = req.query;
+
+  if (!lastName) {
+    return res.status(400).json({
+      error: "Last Name is required!",
+      message: "Please provide a last name to search for records.",
+    });
+  }
+
+  try {
+    // Build the query
+    const query = {
+      lastName: { $regex: `^${lastName}$`, $options: "i" },
+    };
+
+    if (record_id && record_id.trim() !== "") {
+      query._id = { $regex: `^${record_id}$`, $options: "i" };
+    }
+
+    // Return minimal public fields only
+    const matchingRecords = await Record.find(query)
+      .select("_id firstName lastName points")
+      .lean();
+
+    if (matchingRecords.length === 0) {
+      return res.status(404).json({
+        error: record_id
+          ? `Record ${record_id}: ${lastName} Not Found!`
+          : `No records found with last name: ${lastName}`,
+        message: record_id
+          ? "Please verify the Record ID and Last Name are correct."
+          : "Please check the spelling of the last name.",
+      });
+    }
+
+    if (matchingRecords.length === 1) {
+      return res.json({
+        ...matchingRecords[0],
+        requiresDisambiguation: false,
+      });
+    }
+
+    // If multiple records, return minimal set and signal disambiguation
+    return res.status(409).json({
+      error: "Multiple records found with the same last name",
+      message: `Found ${matchingRecords.length} records with last name "${lastName}". Please provide a Record ID to select the correct one.`,
+      requiresDisambiguation: true,
+      matchingRecords: matchingRecords.map((record) => ({
+        _id: record._id,
+        firstName: record.firstName,
+        lastName: record.lastName,
+        points: record.points,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const searchRecords = async (req, res) => {
   const { residentStatus, query } = req.query;
 
@@ -458,6 +526,7 @@ module.exports = {
   updateRecord,
   getSingleRecord,
   findRecordByLastName,
+  findRecordPublicByLastName,
   searchRecords,
   deleteRecord,
 };
